@@ -1,0 +1,57 @@
+{
+  "stories": [
+    {
+      "id": "src-story-hellow-story-svelte",
+      "title": "Hellow",
+      "group": null,
+      "layout": {
+        "type": "single",
+        "iframe": true
+      },
+      "icon": null,
+      "iconColor": null,
+      "docsOnly": false,
+      "variants": [
+        {
+          "id": "_default",
+          "title": "default"
+        }
+      ],
+      "relativePath": "src/story/Hellow.story.svelte",
+      "supportPluginId": "svelte3",
+      "treePath": [
+        "Hellow"
+      ],
+      "virtual": false,
+      "markdownFile": null
+    },
+    {
+      "id": "src-story-lib-elements-flow-story-svelte",
+      "title": "Flow",
+      "group": null,
+      "layout": {
+        "type": "single",
+        "iframe": true
+      },
+      "icon": null,
+      "iconColor": null,
+      "docsOnly": false,
+      "variants": [
+        {
+          "id": "_default",
+          "title": "default"
+        }
+      ],
+      "relativePath": "src/story/lib/elements/Flow.story.svelte",
+      "supportPluginId": "svelte3",
+      "treePath": [
+        "Lib",
+        "Elements",
+        "Flow"
+      ],
+      "virtual": false,
+      "markdownFile": null
+    }
+  ],
+  "markdownFiles": []
+}
