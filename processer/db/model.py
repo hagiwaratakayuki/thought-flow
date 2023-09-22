@@ -2,6 +2,7 @@ from google.cloud import datastore
 import re
 client = None
 
+
 def get_client():
     global client
     if client is None:
@@ -61,8 +62,9 @@ class Model(object):
 
 
     @classmethod
-    def _get_key(cls, path_args, kwargs, eid=None):
-        _path = list(path_args)
+    def _get_key(cls, path_args=[], kwargs={}, eid=None):
+        
+        _path = path_args[:]
         _path.append(cls.__name__)
         if eid is not None:
             _path.append(eid)

@@ -2,9 +2,11 @@
 
 from loader.loader import load
 import numpy as np
-from db import text, vertex, cluster, cluster_member, model as db_model
+from db import text, cluster, cluster_member, model as db_model
 from multiprocessing import Pool
 import multiprocessing as multi
+from processer.db import edge
+from ridgedetect.taged import Taged
 
 
 
@@ -107,5 +109,76 @@ def _process(loader, model:Model, vectaizer, workers=multi.cpu_count()):
     vectors = np.zeros(shape=shape)
     for i, v in vectors_map.items():
         vectors[i] = v
-
+    taged = Taged()
+    taged.fit(tags_map=tags_map, vectors=vectors, sample=32)
+    count = 0
+    chunk = []
+    members_chunk = []
+    connect_count_cache = {}
+    member_model_chunk = []
+    member_model_count = 0
+    for cluster_members in taged.clusters.values():
+        cluster_model = cluster.Cluster()
+        cluster_model.member_count = len(cluster_members)
+        chunk.append(cluster_model)
+        members_chunk.append(cluster_members.values())
+        count += 1
+        if count >= 30:
+            
+            entities = db_model.put_multi(chunk)
+            for entity, members in zip(entities, members_chunk):
+                for member in members:
+                    member_model =  cluster_member.ClusterMember()
+                    member_model.cluster = entity.id
+                    member_model.vertex = index2id[member]
+                    if not member in connect_count_cache:
+                        connect_count_cache[member] = len(taged.graph.get(member, {}))
+                    member_model.connect = connect_count_cache[member]
+                    member_model_chunk.append(member_model)
+                    member_model_count += 1
+                    if member_model_count >= 30:
+                        db_model.put_multi(member_model_chunk)
+                        member_model_count = 0
+    if count > 0:
+        entities = db_model.put_multi(chunk)
+        for entity, members in zip(entities, members_chunk):
+            for member in members:
+                member_model =  cluster_member.ClusterMember()
+                member_model.cluster = entity.id
+                member_model.vertex = index2id[member]
+                if not member in connect_count_cache:
+                    connect_count_cache[member] = len(taged.graph.get(member, {}))
+                member_model.connect = connect_count_cache[member]
+                member_model_chunk.append(member_model)
+                member_model_count += 1
+                if member_model_count >= 30:
+                    db_model.put_multi(member_model_chunk)
+                    member_model_count = 0
+    if member_model_count > 0:
+        db_model.put_multi(member_model_chunk)
+    chunk = []
+    count = 0
+    for ind, vertexs in taged.graph.items():
+        for vertex in vertexs:
+            model_entity = edge.Edge()
+            model_entity.linked_from = index2id[ind]
+            model_entity.link_to = index2id[vertex]
+            chunk.append(model)
+            count += 1
+            if count >= 30:
+                db_model.put_multi(chunk)
+                count = 0
+                chunk = []
+    if count > 0:
+        db_model.put_multi(chunk)
     
+        
+
+
+
+
+
+
+
+
+

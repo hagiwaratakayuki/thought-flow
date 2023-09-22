@@ -7,6 +7,7 @@ class Taged(RidgeDitect):
         self._tags_map = tags_map
         ret = super().fit(vectors, sample)
         self._postoprocess(self.clusters)
+        return ret
 
     def _get_masks(self, nearbys, scores,sorted_args, samples, nearby_vectors, vectors):
         tags_array = np.array([set(tags) for tags in self._tags_map.values()])
