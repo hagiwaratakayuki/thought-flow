@@ -1,4 +1,5 @@
 import numpy as np
+import random
 class SentimentWeights:
     neutral:float
     positive:float
@@ -12,6 +13,30 @@ class SentinmentVector:
 class SentimentResult:
     vectors:SentinmentVector
     weights:SentimentWeights
+
+def build_mock_sentiment_result(n_samples:int, d1:int):
+    neutral = random.random()
+    positive = random.random()
+    negative = random.random()
+    total = sum([neutral, positive, negative])
+    weights = SentimentWeights()
+    weights.neutral = neutral / total
+    weights.positive = positive / total
+    weights.negative = negative / total
+    neutral = np.random.rand(n_samples, d1)
+    positive = np.random.rand(n_samples, d1)
+    negative = np.random.rand(n_samples, d1)
+    vectors = SentinmentVector()
+
+    vectors.neutral = neutral 
+    vectors.positive = positive 
+    vectors.negative = negative
+    result = SentimentResult()
+    result.vectors = vectors
+    result.weights = weights
+    return result
+
+
 
 
     
