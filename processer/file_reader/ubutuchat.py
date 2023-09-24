@@ -1,4 +1,4 @@
-from loader.csv import load as csv_load
+from processer.file_reader.csv import load as csv_load
 
 def ubuntu_load(path):
     columnmap = {

@@ -84,9 +84,11 @@ def copy_updates(target_directories):
            continue
         
         shutil.copy2(copy_from, os.path.join(target_directory, _path),)
+
 if __name__ == "__main__":
+   print('start')
    copy_updates(['online_server/db', 'processer/db'])
-   
+   print('done')
            
 
      

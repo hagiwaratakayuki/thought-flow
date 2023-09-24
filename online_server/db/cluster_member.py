@@ -1,7 +1,9 @@
+from typing import Any
 from .model import Model
 
 
 class ClusterMember(Model):
-    cluster:str
-    vertex:str
+    cluster:Any
+    vertex:Any
+    connect:int
     

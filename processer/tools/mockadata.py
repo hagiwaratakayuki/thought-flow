@@ -1,5 +1,6 @@
 import random, string
 from logic.save import buildModel, _save
+
 import numpy as np
 from dto import DTO
 from doc2vec.indexer.dto import build_mock_sentiment_result 

@@ -14,19 +14,13 @@ class WordToVec(Model):
 
 def get_vectors(words):
     
-    chunked = [words[i:i + 100] for i in range(0, len(words), 100)]
+    chunked = [words[i:i + 30] for i in range(0, len(words), 30)]
     results = {}
     for chunk in chunked:
         wordtovec_query = WordToVec.query()
 
-        or_filters = query.Or(
-            [
-                query.PropertyFilter("word", "=", word)
-                for word in chunk
-            
-            ]
-        )
-        wordtovec_query.add_filter(filter=or_filters)
+     
+        wordtovec_query.add_filter("word", "in", chunk)
         results_chunk = wordtovec_query.fetch()
         for result in results_chunk:
             results[result['word']] = numpy.array(json.loads(result["vector"]))
