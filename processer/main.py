@@ -1,11 +1,11 @@
 
 
-from processer.file_reader.newsgroup import load
+#from file_reader.newsgroup import load
 import numpy as np
 from db import text, cluster, cluster_member, model as db_model
 from multiprocessing import Pool
 import multiprocessing as multi
-from processer.db import edge
+from db import edge
 from ridgedetect.taged import Taged
 
 

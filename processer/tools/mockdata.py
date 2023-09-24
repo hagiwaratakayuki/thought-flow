@@ -9,6 +9,7 @@ from doc2vec.indexer.dto import build_mock_sentiment_result
 
  
 def main():
+    
     keyword_map = [
             ''.join([random.choice(string.ascii_letters + string.digits) for i in range(random.randint(1, 10))])
             for n in range(random.randint(5, 20))
@@ -34,5 +35,7 @@ def main():
         
     print(_save(datas=zip(vectors, sentiments, keywords, datas), model=db_model)) 
 
-if __name__ == 'main':
+
+if __name__ == '__main__':
+    
     main()

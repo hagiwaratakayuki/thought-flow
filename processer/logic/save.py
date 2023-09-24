@@ -1,4 +1,4 @@
-from file_reader.newsgroup import load
+
 import numpy as np
 from db import text, cluster, cluster_member, model as db_model, edge
 from multiprocessing import Pool
@@ -10,7 +10,7 @@ from doc2vec.indexer.dto import SentimentResult
 
 
 
-def process(loader=load):
+def process(loader):
     vectaizer = buildVectaizer()
     model = buildModel()
 
@@ -36,7 +36,8 @@ class Model:
 
     def save(self, data, vector, sentiment_result:SentimentResult, keyword):
         textEntity = text.Text()
-        textEntity.setProperty('',  data.body, dict(vector=vector.tolist(), sentiment=sentiment_result.weights))
+        sentiment = {'neautral':sentiment_result.weights.neutral, 'negative':sentiment_result.weights.negative, 'positive':sentiment_result.weights.positive}
+        textEntity.setProperty('',  data.body, dict(vector=vector.tolist(), sentiment={sentiment_result.weights}))
         self._vectotrs.append(vector)
         self._keywords.append(keyword)
         self._chunk.append(textEntity)
