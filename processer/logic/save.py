@@ -37,7 +37,7 @@ class Model:
     def save(self, data, vector, sentiment_result:SentimentResult, keyword):
         textEntity = text.Text()
         sentiment = {'neautral':sentiment_result.weights.neutral, 'negative':sentiment_result.weights.negative, 'positive':sentiment_result.weights.positive}
-        textEntity.setProperty('',  data.body, dict(vector=vector.tolist(), sentiment={sentiment_result.weights}))
+        textEntity.setProperty('',  data.body, dict(vector=vector.tolist(), sentiment=sentiment))
         self._vectotrs.append(vector)
         self._keywords.append(keyword)
         self._chunk.append(textEntity)
