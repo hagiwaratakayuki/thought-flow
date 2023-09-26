@@ -5,5 +5,4 @@ class Vertex(Model):
     text:Key
     link_to:list[str]
     linked_count:int
-    published:datetime.datetime
-    
+    published:str

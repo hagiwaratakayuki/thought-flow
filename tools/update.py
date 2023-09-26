@@ -38,7 +38,8 @@ def scan_directory_and_check_update_time(directory_path):
         if '__pycache__' in file_path:
            continue
         fp = os.path.join(directory_path, file_path)
-        if os.path.isdir(file_path):
+        if os.path.isdir(fp):
+          
           index += 1
           targets[index] = fp
           continue
@@ -61,8 +62,11 @@ def compaire_file_update(target_directries):
                 continue
             update_base = update_bases[_path]
             update_base['checkcount'] += 1
-            if update_base['update'] < update:
+            
+            
+            if update_base['update'] != update:
                 update_base['uppercount'] += 1
+            if update_base['update'] < update:    
                 update_base['path'] = path
    
     return update_bases
@@ -82,8 +86,15 @@ def copy_updates(target_directories):
      for target_directory in target_directories:
         if target_directory in copy_from:
            continue
-        
-        shutil.copy2(copy_from, os.path.join(target_directory, _path),)
+        copy_to = os.path.join(target_directory, _path)
+        if os.path.exists(copy_to) == False:
+          dirname = os.path.dirname(copy_to)
+          if os.path.isdir(dirname) == False:
+             os.makedirs(dirname)
+
+          open(copy_to, "w").close()
+    
+        shutil.copy2(copy_from, copy_to)
 
 if __name__ == "__main__":
    print('start')

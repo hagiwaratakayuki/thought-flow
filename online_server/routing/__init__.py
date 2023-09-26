@@ -1,6 +1,8 @@
 
 from fastapi import FastAPI, APIRouter
-from .router import routings
+import os
+
+routings:list[tuple[str,APIRouter]] = []
 
 
 

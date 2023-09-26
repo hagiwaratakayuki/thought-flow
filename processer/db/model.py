@@ -12,6 +12,7 @@ def get_client():
 PT = re.compile('^_')
 class Model(object):
     _entity_options:dict
+    _entity = None
     def __init__(self, eid=None, entry_options={}, path_args=[], kwargs={}) -> None:
         self._path_args = path_args
         self._kwargs = kwargs
@@ -41,9 +42,12 @@ class Model(object):
             client.put(entity)
         return entity
     def get_entity(self, eid=None, path_args=None, kwargs=None):
-        options = self._entity_options
-        key = self.__class__._get_key(path_args or  self._path_args, kwargs or self._kwargs, eid or self._eid)
-        entity = datastore.Entity(key=key, **options)
+        if self._entity != None:
+            entity = self._entity
+        else:
+            options = self._entity_options
+            key = self.__class__._get_key(path_args or  self._path_args, kwargs or self._kwargs, eid or self._eid)
+            entity = datastore.Entity(key=key, **options)
         data = {key:getattr(self, key) for key in  filter(self._filter, dir(self)) }
         
         entity.update(data)
@@ -73,6 +77,15 @@ class Model(object):
         return self._update(path_args, kwrgs)
     def upsert (self, eid=None, *path_args, **kwrgs):
         return self._update(path_args, kwrgs, eid)
+    @classmethod
+    def from_entity(cls, entity):
+        ret = cls()
+        for k, v in entity.items():
+            setattr(ret, k, v)
+        ret._entity = entity
+        return ret
+
+
     
 def put_multi(models:list[Model]):
     entities = [model.get_entity() for model in models]
