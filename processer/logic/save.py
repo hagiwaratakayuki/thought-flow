@@ -1,14 +1,14 @@
 
 import numpy as np
-from db import text, cluster, cluster_member, model as db_model, edge
+from db import text, cluster, cluster_member, model as db_model, edge, text_to_keyword
 from multiprocessing import Pool
-import multiprocessing as multi
+from collections import deque, defaultdict
 
 from ridgedetect.taged import Taged
 from doc2vec import Doc2Vec
 from doc2vec.indexer.dto import SentimentResult
 
-
+import uuid
 
 def process(loader):
     vectaizer = buildVectaizer()
@@ -34,31 +34,23 @@ class Model:
         self._vectotrs = []
         self._keywords = []
 
-    def save(self, data, vector, sentiment_result:SentimentResult, keyword):
-        textEntity = text.Text()
+    def save(self, eid, data, vector, sentiment_result:SentimentResult, linked_to:list[str], linked_count:int):
+        textEntity = text.Text(eid=eid)
         sentiment = {'neautral':sentiment_result.weights.neutral, 'negative':sentiment_result.weights.negative, 'positive':sentiment_result.weights.positive}
-        textEntity.setProperty('',  data.body, dict(vector=vector.tolist(), sentiment=sentiment))
-        self._vectotrs.append(vector)
-        self._keywords.append(keyword)
+        textEntity.setProperty('',  data.body, dict(vector=vector.tolist(), sentiment=sentiment),linked_to=linked_to, linked_count=linked_count, published=data.published)
         self._chunk.append(textEntity)
+        
+        
         
         if len(self._chunk) < 30:
             return
         entities = db_model.put_multi(self._chunk)
-        ret  = zip(self._vectotrs, self._keywords, entities)
         
-        self._chunk = []
-        self._vectotrs = []
-        self._keywords = []
 
-        return ret
+        return entities
     def finish(self):
         entities = db_model.put_multi(self._chunk)
-        ret  = zip(self._vectotrs, self._keywords, entities)
-        self._chunk = []
-        self._vectotrs = []
-        self._keywords = []
-        return ret
+        return entities
 
 
 
@@ -80,42 +72,27 @@ def _save(datas, model:Model):
     index2id = {}
     
     vectors_map = {}
+    
     index = 0
     
     shape = [0, 0]
     is_first = True
     for vector, sentimentResults, keywords, data in datas:
         
-        result = model.save(data, vector, sentimentResults, keywords)
-        if result == None:
-            continue
-        
-        for vec, keywords,entity  in result:
-            if is_first == True:
-                is_first = False
-                shape[1] = vec.shape[0] 
-            vectors_map[index] = vec
-            index2id[index] = entity.id
-            tags_map[index] = keywords
-            index +=1    
-
-
-            
-
-    result = model.finish()
- 
-    
-   
-    for vec, keywords,entity  in result:
         
         if is_first == True:
             is_first = False
-            shape[1] = vec.shape[0]  
-        vectors_map[index] = vec
-        index2id[index] = entity.id
-       
+            shape[1] = vector.shape[0] 
+        vectors_map[index] = vector
+        index2id[index] = uuid.uuid4()
         tags_map[index] = keywords
-        index +=1
+        index +=1  
+        
+
+   
+    
+   
+
     shape[0] = index
 
     vectors = np.zeros(shape=shape)
@@ -184,11 +161,15 @@ def _save(datas, model:Model):
         db_model.put_multi(member_model_chunk)
     chunk = []
     count = 0
+    linked_counts_map = defaultdict(int)
     for ind, vertexs in taged.graph.items():
+        
         for vertex in vertexs:
             edge_model = edge.Edge()
             edge_model.linked_from = index2id[ind]
-            edge_model.link_to = index2id[vertex]
+            link_to = index2id[vertex]
+            linked_counts_map[link_to] += 1
+            edge_model.link_to = link_to
             chunk.append(edge_model)
             count += 1
             if count >= 30:
@@ -197,3 +178,32 @@ def _save(datas, model:Model):
                 chunk = []
     if count > 0:
         db_model.put_multi(chunk)
+    index = 0
+    model = Model()
+    keyword_chunk = deque()
+    keyword_count = 0 
+    for vector, sentimentResults, keywords, data in datas:
+        eid = index2id[index]
+        link_to = [index2id[to_index] for to_index in taged.graph[index]]
+        linked_count = linked_counts_map[index]
+        model.save(eid=eid, data=data, vector=vector, sentiment_result=sentimentResults,linked_to=link_to, linked_count=linked_count)
+        for keyword in keywords:
+            keyword_model = text_to_keyword.TextToKeyword()
+            keyword_model.published = data.published
+            keyword_model.linked_count = linked_count
+            keyword_model.keyword = keyword
+            keyword_model.text_id = eid
+            keyword_chunk.append(keyword_model)
+            keyword_count += 1
+            if keyword_count >= 30:
+                db_model.put_multi(keyword_chunk)
+                keyword_count = 0
+                keyword_chunk = deque()
+    if keyword_count > 0:
+       db_model.put_multi(keyword_chunk)     
+
+
+
+        
+
+    model.finish()

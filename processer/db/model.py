@@ -1,5 +1,6 @@
 from google.cloud import datastore
 import re
+from typing import Iterable
 client = None
 
 
@@ -87,7 +88,7 @@ class Model(object):
 
 
     
-def put_multi(models:list[Model]):
+def put_multi(models:Iterable[Model]):
     entities = [model.get_entity() for model in models]
     get_client().put_multi(entities)
     return entities
