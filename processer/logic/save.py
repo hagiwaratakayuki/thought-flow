@@ -1,6 +1,6 @@
 
 import numpy as np
-from db import text, cluster, cluster_member, model as db_model, edge, text_to_keyword
+from db import text, cluster, cluster_member, model as db_model, edge, text_to_keyword, cluster_keyword
 from multiprocessing import Pool
 from collections import deque, defaultdict
 
@@ -140,8 +140,8 @@ def _save(datas, model:Model):
     member_model_chunk = Chunker()
 
     cluster_keyword_chunk = deque()
-    keyword_model_chunk = deque()
-    keyword_model_count = 0
+    keyword_model_chunk = Chunker()
+
     for cluster_id, cluster_members in taged.clusters.items():
         cluster_model = cluster.Cluster()
         cluster_model.member_count = len(cluster_members)
@@ -161,10 +161,12 @@ def _save(datas, model:Model):
                 linked_counts_map=linked_counts_map,
                 member_model_chunk=member_model_chunk,
                 index2published=index2published,
-                taged=taged
+                taged=taged,
+                keyword_model_chunk=keyword_model_chunk
 
             )
             members_chunk = deque()
+            cluster_keyword_chunk = deque()
                       
             
            
@@ -178,11 +180,13 @@ def _save(datas, model:Model):
             linked_counts_map=linked_counts_map,
             member_model_chunk=member_model_chunk,
             index2published=index2published,
-            taged=taged
-
+            taged=taged,
+            keyword_model_chunk=keyword_model_chunk
         )
         members_chunk = deque()
-
+        keyword_chunk = deque()
+    member_model_chunk.close()
+    keyword_model_chunk.close()
 
     index = 0
     model = Model()
@@ -218,7 +222,8 @@ def _put_cluster_data(
         linked_counts_map, 
         member_model_chunk:Chunker, 
         index2published,
-        taged
+        taged,
+        keyword_model_chunk:Chunker
         
     ):
     
@@ -233,5 +238,9 @@ def _put_cluster_data(
             member_model.connect_count = linked_counts_map[member]
             member_model.published = index2published[member]
             member_model_chunk.put(member_model)
-           
-            
+        for keyword in keywords:
+            keyword_model =  cluster_keyword.ClusterKeyword()
+            keyword_model.keyword = keyword
+            keyword_model.cluster_id = entity.id
+            keyword_model_chunk.put(keyword_model)
+        
