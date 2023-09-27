@@ -1,8 +1,9 @@
 
 import numpy as np
-from db import text, cluster, cluster_member, model as db_model, edge, text_to_keyword, cluster_keyword
+from db import text, cluster, cluster_member, model as db_model, edge, cluster_keyword
 from multiprocessing import Pool
 from collections import deque, defaultdict
+from processer.db import text_keyword
 
 from ridgedetect.taged import Taged
 from doc2vec import Doc2Vec
@@ -113,23 +114,28 @@ def _save(datas, model:Model):
     taged.fit(tags_map=tags_map, vectors=vectors, sample=32)
 
    
-    edge_chunk = Chunker()
+    #edge_chunk = Chunker()
     linked_counts_map = defaultdict(int)
     for ind, vertexs in taged.graph.items():
-        
         for vertex in vertexs:
-            edge_model = edge.Edge()
-            edge_model.linked_from = index2id[ind]
             link_to = index2id[vertex]
             linked_counts_map[link_to] += 1
-            edge_model.link_to = link_to
-            
-            edge_chunk.put(edge_model)
-            
+    """
+    for ind, vertexs in taged.graph.items():
+        linked_from =  index2id[ind]
+        published = index2published[ind]
+        for vertex in vertexs:
+            edge_model = edge.Edge()
+            edge_model.linked_from = linked_from
+            edge_model.published = published             
+            edge_model.link_to = index2id[vertex]
+            edge_model.linked_count = linked_counts_map[vertex]
+            edge_chunk.put(edge_model)          
            
     
     edge_chunk.close()
     edge_chunk = None
+    """
 
     
     cluster_chunker = Chunker()
@@ -195,7 +201,7 @@ def _save(datas, model:Model):
         linked_count = linked_counts_map[index]
         model.save(eid=eid, data=data, vector=vector, sentiment_result=sentimentResults,linked_to=link_to, linked_count=linked_count)
         for keyword in keywords:
-            keyword_model = text_to_keyword.TextToKeyword()
+            keyword_model = text_keyword.TextKeyword()
             keyword_model.published = data.published
             keyword_model.linked_count = linked_count
             keyword_model.keyword = keyword
@@ -230,10 +236,9 @@ def _put_cluster_data(
         for member in members:
             member_model =  cluster_member.ClusterMember()
             member_model.cluster = entity.id
-            member_model.text = index2id[member]
-            if not member in linked_counts_map:
-                linked_counts_map[member] = len(taged.graph.get(member, {}))
-            member_model.connect_count = linked_counts_map[member]
+            member_model.text_id = index2id[member]
+           
+            member_model.linked_count = linked_counts_map[member]
             member_model.published = index2published[member]
             member_model_chunk.put(member_model)
         for keyword in keywords:

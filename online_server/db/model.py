@@ -58,7 +58,7 @@ class Model(object):
         key = cls._get_key(path_args, kwargs, eid)
         return get_client().get(key)
     @classmethod
-    def get_multi(cls, params, options):
+    def get_multi(cls, params):
         
         keys = [cls._get_key(**param) for param in params]
 

@@ -3,8 +3,8 @@ from .model import Model
 from datetime import datetime
 
 class ClusterMember(Model):
-    cluster:Any
-    text:str
-    connect_count:int
+    cluster_id:Any
+    text_id:str
+    linked_count:int
     published:datetime
     

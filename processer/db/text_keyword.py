@@ -1,6 +1,6 @@
 from .model import Model
 
-class TextToKeyword(Model):
+class TextKeyword(Model):
     keyword:str
     published:str
     text_id:str
