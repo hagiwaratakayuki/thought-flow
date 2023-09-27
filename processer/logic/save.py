@@ -7,7 +7,7 @@ from collections import deque, defaultdict
 from ridgedetect.taged import Taged
 from doc2vec import Doc2Vec
 from doc2vec.indexer.dto import SentimentResult
-
+from logic.data import date_converter
 import uuid
 
 def process(loader):
@@ -37,7 +37,12 @@ class Model:
     def save(self, eid, data, vector, sentiment_result:SentimentResult, linked_to:list[str], linked_count:int):
         textEntity = text.Text(eid=eid)
         sentiment = {'neautral':sentiment_result.weights.neutral, 'negative':sentiment_result.weights.negative, 'positive':sentiment_result.weights.positive}
-        textEntity.setProperty('',  data.body, dict(vector=vector.tolist(), sentiment=sentiment),linked_to=linked_to, linked_count=linked_count, published=data.published)
+        textEntity.setProperty('',  
+                               data.body, 
+                               dict(vector=vector.tolist(), sentiment=sentiment),
+                               linked_to=linked_to, 
+                               linked_count=linked_count, 
+                               published=date_converter.convert(data.published))
         self._chunk.append(textEntity)
         
         

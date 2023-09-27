@@ -97,9 +97,9 @@ def copy_updates(target_directories):
         shutil.copy2(copy_from, copy_to)
 
 if __name__ == "__main__":
-   print('start')
+   print('start', datetime.datetime.now())
    copy_updates(['online_server/db', 'processer/db'])
-   print('done')
+   print('done', datetime.datetime.now())
            
 
      
@@ -107,12 +107,5 @@ if __name__ == "__main__":
 
 
 
-    
-    
 
-
-  
-
-if __name__ == "__main__":
-  pass
  
