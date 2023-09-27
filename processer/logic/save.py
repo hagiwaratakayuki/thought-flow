@@ -112,8 +112,8 @@ def _save(datas, model:Model):
     taged = Taged()
     taged.fit(tags_map=tags_map, vectors=vectors, sample=32)
 
-    chunk = []
-    count = 0
+   
+    edge_chunk = Chunker()
     linked_counts_map = defaultdict(int)
     for ind, vertexs in taged.graph.items():
         
@@ -123,17 +123,15 @@ def _save(datas, model:Model):
             link_to = index2id[vertex]
             linked_counts_map[link_to] += 1
             edge_model.link_to = link_to
-            chunk.append(edge_model)
-            count += 1
-            if count >= 30:
-                db_model.put_multi(chunk)
-                count = 0
-                chunk = []
-    if count > 0:
-        db_model.put_multi(chunk)
+            
+            edge_chunk.put(edge_model)
+            
+           
+    
+    edge_chunk.close()
+    edge_chunk = None
 
-    count = 0
-    chunk = []
+    
     cluster_chunker = Chunker()
     members_chunk = deque()
     
@@ -190,8 +188,7 @@ def _save(datas, model:Model):
 
     index = 0
     model = Model()
-    keyword_chunk = deque()
-    keyword_count = 0 
+    keyword_chunk = Chunker()
     for vector, sentimentResults, keywords, data in datas:
         eid = index2id[index]
         link_to = [index2id[to_index] for to_index in taged.graph[index]]
@@ -203,16 +200,17 @@ def _save(datas, model:Model):
             keyword_model.linked_count = linked_count
             keyword_model.keyword = keyword
             keyword_model.text_id = eid
-            keyword_chunk.append(keyword_model)
-            keyword_count += 1
-            if keyword_count >= 30:
-                db_model.put_multi(keyword_chunk)
-                keyword_count = 0
-                keyword_chunk = deque()
-    if keyword_count > 0:
-       db_model.put_multi(keyword_chunk)     
+            keyword_chunk.put(keyword_model)
+        index += 1
+            
+           
+    
+    entities = model.finish()
+    keyword_chunk.close()
+    
+   
 
-    model.finish()
+    
 
 def _put_cluster_data(
         entities, 
