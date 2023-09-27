@@ -8,6 +8,7 @@ from ridgedetect.taged import Taged
 from doc2vec import Doc2Vec
 from doc2vec.indexer.dto import SentimentResult
 from logic.data import date_converter
+from db.util.chunked import Chunker
 import uuid
 
 def process(loader):
@@ -75,7 +76,7 @@ def _save(datas, model:Model):
    
     tags_map = {}
     index2id = {}
-    
+    index2published = {}
     vectors_map = {}
     
     index = 0
@@ -91,6 +92,7 @@ def _save(datas, model:Model):
         vectors_map[index] = vector
         index2id[index] = uuid.uuid4()
         tags_map[index] = keywords
+        index2published[index] = data.published
         index +=1  
         
 
@@ -108,62 +110,8 @@ def _save(datas, model:Model):
         vectors[i] = v
    
     taged = Taged()
-    taged.fit(tags_map=tags_map, vectors=vectors, sample=4)
-    count = 0
-    chunk = []
-    members_chunk = []
-    connect_count_cache = {}
-    member_model_chunk = []
-    member_model_count = 0
-    for cluster_members in taged.clusters.values():
-        cluster_model = cluster.Cluster()
-        cluster_model.member_count = len(cluster_members)
-        chunk.append(cluster_model)
-        members_chunk.append(cluster_members)
-        count += 1
-        
-        if count >= 30:
-            
-            entities = db_model.put_multi(chunk)
-            chunk = []
-            count = 0
-            
-            for entity, members in zip(entities, members_chunk):
-               
-                for member in members:
-                    member_model =  cluster_member.ClusterMember()
-                    member_model.cluster = entity.id
-                    member_model.vertex = index2id[member]
-                    if not member in connect_count_cache:
-                        connect_count_cache[member] = len(taged.graph.get(member, {}))
-                    member_model.connect = connect_count_cache[member]
-                    member_model_chunk.append(member_model)
-                    member_model_count += 1
-                    if member_model_count >= 30:
-                        
-                        db_model.put_multi(member_model_chunk)
-                        member_model_count = 0
-                        member_model_chunk = []
-           
-    if count > 0:
-        entities = db_model.put_multi(chunk)
-        chunk = []
-        count = 0
-        for entity, members in zip(entities, members_chunk):
-            for member in members:
-                member_model =  cluster_member.ClusterMember()
-                member_model.cluster = entity.id
-                member_model.vertex = index2id[member]
-                if not member in connect_count_cache:
-                    connect_count_cache[member] = len(taged.graph.get(member, {}))
-                member_model.connect = connect_count_cache[member]
-                member_model_chunk.append(member_model)
-                member_model_count += 1
-                if member_model_count >= 30:
-                    db_model.put_multi(member_model_chunk)
-                    member_model_count = 0
-    if member_model_count > 0:
-        db_model.put_multi(member_model_chunk)
+    taged.fit(tags_map=tags_map, vectors=vectors, sample=32)
+
     chunk = []
     count = 0
     linked_counts_map = defaultdict(int)
@@ -183,6 +131,59 @@ def _save(datas, model:Model):
                 chunk = []
     if count > 0:
         db_model.put_multi(chunk)
+
+    count = 0
+    chunk = []
+    cluster_chunker = Chunker()
+    members_chunk = deque()
+    
+    member_model_chunk = Chunker()
+
+    cluster_keyword_chunk = deque()
+    keyword_model_chunk = deque()
+    keyword_model_count = 0
+    for cluster_id, cluster_members in taged.clusters.items():
+        cluster_model = cluster.Cluster()
+        cluster_model.member_count = len(cluster_members)
+        cluster_model.short_keywords = list(taged.tag_index[cluster_id])[:10]
+    
+        entities = cluster_chunker.put(cluster_model)
+        cluster_keyword_chunk.append(taged.tag_index[cluster_id])
+        members_chunk.append(cluster_members)
+        
+        
+        if entities != None:
+            _put_cluster_data(
+                entities=entities,
+                members_chunk=members_chunk,
+                cluster_keyword_chunk=cluster_keyword_chunk,
+                index2id=index2id,
+                linked_counts_map=linked_counts_map,
+                member_model_chunk=member_model_chunk,
+                index2published=index2published,
+                taged=taged
+
+            )
+            members_chunk = deque()
+                      
+            
+           
+    entities = cluster_chunker.close()
+    if entities != None:
+        _put_cluster_data(
+            entities=entities,
+            members_chunk=members_chunk,
+            cluster_keyword_chunk=cluster_keyword_chunk,
+            index2id=index2id,
+            linked_counts_map=linked_counts_map,
+            member_model_chunk=member_model_chunk,
+            index2published=index2published,
+            taged=taged
+
+        )
+        members_chunk = deque()
+
+
     index = 0
     model = Model()
     keyword_chunk = deque()
@@ -207,8 +208,30 @@ def _save(datas, model:Model):
     if keyword_count > 0:
        db_model.put_multi(keyword_chunk)     
 
-
-
-        
-
     model.finish()
+
+def _put_cluster_data(
+        entities, 
+        members_chunk, 
+        cluster_keyword_chunk, 
+        index2id, 
+        linked_counts_map, 
+        member_model_chunk:Chunker, 
+        index2published,
+        taged
+        
+    ):
+    
+    for entity, members, keywords in zip(entities, members_chunk, cluster_keyword_chunk):
+            
+        for member in members:
+            member_model =  cluster_member.ClusterMember()
+            member_model.cluster = entity.id
+            member_model.text = index2id[member]
+            if not member in linked_counts_map:
+                linked_counts_map[member] = len(taged.graph.get(member, {}))
+            member_model.connect_count = linked_counts_map[member]
+            member_model.published = index2published[member]
+            member_model_chunk.put(member_model)
+           
+            

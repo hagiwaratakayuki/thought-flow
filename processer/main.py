@@ -130,7 +130,7 @@ def _process(loader, model:Model, vectaizer, workers=multi.cpu_count()):
                 for member in members:
                     member_model =  cluster_member.ClusterMember()
                     member_model.cluster = entity.id
-                    member_model.vertex = index2id[member]
+                    member_model.text = index2id[member]
                     if not member in connect_count_cache:
                         connect_count_cache[member] = len(taged.graph.get(member, {}))
                     member_model.connect = connect_count_cache[member]
@@ -145,7 +145,7 @@ def _process(loader, model:Model, vectaizer, workers=multi.cpu_count()):
             for member in members:
                 member_model =  cluster_member.ClusterMember()
                 member_model.cluster = entity.id
-                member_model.vertex = index2id[member]
+                member_model.text = index2id[member]
                 if not member in connect_count_cache:
                     connect_count_cache[member] = len(taged.graph.get(member, {}))
                 member_model.connect = connect_count_cache[member]

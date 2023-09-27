@@ -69,7 +69,7 @@ class Taged(RidgeDitect):
                  
             for members, tags in sub_clusters.items(): 
                 new_clusters[cluster_id] = members
-                tag_index[cluster_id] = list(tags)
+                tag_index[cluster_id] = tags
                 for member in members:
                     member_to_clusters[member][cluster_id] = True
                 cluster_id += 1       
