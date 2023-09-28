@@ -8,3 +8,4 @@ class ClusterMember(Model):
     linked_count:int
     published:datetime
     
+    

@@ -1,6 +1,8 @@
 from google.cloud import datastore
 import re
-from typing import Iterable
+
+from collections.abc import Iterable
+from typing import List
 client = None
 
 
@@ -58,9 +60,12 @@ class Model(object):
         key = cls._get_key(path_args, kwargs, eid)
         return get_client().get(key)
     @classmethod
-    def get_multi(cls, params):
-        
+    def get_multi(cls, params) -> List[datastore.Entity] | None:
+        if params == None or not isinstance(Iterable, params):
+            return None
         keys = [cls._get_key(**param) for param in params]
+        if len(keys) == 0:
+            return None
 
         return get_client().get_multi(keys)
     

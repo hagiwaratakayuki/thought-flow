@@ -235,11 +235,13 @@ def _put_cluster_data(
             
         for member in members:
             member_model =  cluster_member.ClusterMember()
-            member_model.cluster = entity.id
+            member_model.cluster_id = entity.id
             member_model.text_id = index2id[member]
+            linked_count = linked_counts_map[member]
+            published = index2published[member]
+            member_model.linked_count = linked_count
+            member_model.published = published
            
-            member_model.linked_count = linked_counts_map[member]
-            member_model.published = index2published[member]
             member_model_chunk.put(member_model)
         for keyword in keywords:
             keyword_model =  cluster_keyword.ClusterKeyword()
