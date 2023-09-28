@@ -5,7 +5,9 @@ class Text(Model):
     body:str
     title:str
     data:str
-    link_to:list[str]
+    author:str = ''
+    author_id:str = ''
+    link_to: list[str] | None
     linked_count:int
     published:datetime
      
