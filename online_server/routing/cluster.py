@@ -6,14 +6,14 @@ from typing import List
 from .query.cluster import get_cluster_keyword, get_cluster_member, get_cluster_member_by_publishedrange
 from app.error_hundling.status_exception import StatusException
 from pydantic import BaseModel
-from routing.return_models.text.entity import TextEntity
-from routing.return_models.text.entities import TextEntities
+from routing.return_models.text.overview import TextOverView
+from routing.return_models.text.overviews import TextOverViews
 
 router = APIRouter()
 
 class EntityAll(BaseModel):
     keywords:list[str]
-    members_list:list[TextEntity] | None
+    members_list:list[TextOverView] | None
     members_list_next:str | None
     member_count:int
 
@@ -27,7 +27,7 @@ def get_entity_all(eid:str)-> EntityAll:
     members_entities, members_list_next = get_cluster_member.fetch(cluster_id=eid)
     members_list: list | None = None
     if members_entities  != None:
-        members_list = [TextEntity(**mem) for mem in members_entities]
+        members_list = [TextOverView(mem.id, **mem) for mem in members_entities] # type: ignore
     return EntityAll(
         keywords=keywords,
         member_count=entity["memebr_count"],
@@ -35,15 +35,15 @@ def get_entity_all(eid:str)-> EntityAll:
         members_list_next=members_list_next    
     )
 
-@router.get('/members', response_model=TextEntities, response_model_exclude_none=True)
-def get_members(eid:str, cursor: None | str = None)-> TextEntities:
+@router.get('/members', response_model=TextOverViews, response_model_exclude_none=True)
+def get_members(eid:str, cursor: None | str = None)-> TextOverViews:
     members_entities, members_list_next = get_cluster_member.fetch(cluster_id=eid, cursor=cursor)
     if members_entities == None:
         raise StatusException(status=status.HTTP_400_BAD_REQUEST)
-    texts = [TextEntity(**mem) for mem in members_entities]
-    return TextEntities(texts=texts, cursor=members_list_next)
+    texts = [TextOverView(**mem) for mem in members_entities]
+    return TextOverViews(texts=texts, cursor=members_list_next)
 
-@router.get('/members_by_publishedate', response_model=List[TextEntity], response_model_exclude_none=True)
+@router.get('/members_by_publishedate', response_model=List[TextOverView], response_model_exclude_none=True)
 def get_members_by_publishedate(
         eid:str, 
         start_year:int,
@@ -53,7 +53,7 @@ def get_members_by_publishedate(
         end_month:int,
         end_date:int,          
         
-    ) -> List[TextEntity]:
+    ) -> List[TextOverView]:
     
     members =  get_cluster_member_by_publishedrange.fetch(
             cluster_id = eid, 
@@ -66,5 +66,5 @@ def get_members_by_publishedate(
     )
     if members == None:
         raise StatusException(status=status.HTTP_400_BAD_REQUEST)
-    return [TextEntity(**mem) for mem in members]
+    return [TextOverView(id=mem.id, **mem) for mem in members] # type: ignore
 

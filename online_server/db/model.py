@@ -60,14 +60,17 @@ class Model(object):
         key = cls._get_key(path_args, kwargs, eid)
         return get_client().get(key)
     @classmethod
-    def get_multi(cls, params) -> List[datastore.Entity] | None:
+    def get_multi(cls, params, is_trict:bool = False) -> List[datastore.Entity] | None:
         if params == None or not isinstance(Iterable, params):
             return None
         keys = [cls._get_key(**param) for param in params]
         if len(keys) == 0:
             return None
 
-        return get_client().get_multi(keys)
+        ret = get_client().get_multi(keys)
+        if is_strict == True and ret.count(None) > 0 : # type: ignore
+            return None
+        return ret
     
 
 

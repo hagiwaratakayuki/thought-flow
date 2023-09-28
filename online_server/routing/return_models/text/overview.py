@@ -1,6 +1,7 @@
 from datetime import datetime 
 from pydantic import BaseModel
-class TextEntity(BaseModel):
+class TextOverView(BaseModel):
+    id: str | int
     published:datetime
     body:str
     author:str
