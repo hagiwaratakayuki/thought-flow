@@ -1,5 +1,5 @@
 import unittest
-from processer.sentiment.nltk_analizer import NLTKAnalizer
+from sentiment.nltk_analizer import NLTKAnalizer
 class MyTestCase(unittest.TestCase):
     def test_basic(self):
         analizer = NLTKAnalizer()

@@ -20,7 +20,7 @@ class EntityAll(BaseModel):
 
 @router.get('/entity_all',response_model=EntityAll, response_model_exclude_none=True)
 def get_entity_all(eid:str)-> EntityAll:
-    entity = Cluster.get(eid=eid)
+    entity = Cluster.get(id=eid)
     if entity == None:
         raise StatusException(status=status.HTTP_400_BAD_REQUEST)
     keywords = get_cluster_keyword.fetch(cluster_id=eid)

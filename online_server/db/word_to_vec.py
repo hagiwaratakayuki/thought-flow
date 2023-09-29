@@ -10,7 +10,7 @@ class WordToVec(Model):
 
         self._entity_options = { "exclude_from_indexes":("vecter",)}
         self.vector = json.dumps(vector.tolist()) 
-        super(WordToVec, self).__init__(eid=word)
+        super(WordToVec, self).__init__(id=word)
 
 def get_vectors(words):
     

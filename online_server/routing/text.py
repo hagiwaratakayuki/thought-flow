@@ -40,7 +40,7 @@ class TextFull(BaseModel):
 
 @router.get('/entity_all',response_model=TextFull, response_model_exclude_none=True)
 def get_entity_all(eid:str)-> TextFull:
-    entity = Text.get(eid=eid)
+    entity = Text.get(id=eid)
     if  entity == None:
         raise StatusException(status=status.HTTP_400_BAD_REQUEST)
     linke_to = Text.get_multi(entity.get('link_to', None)) 

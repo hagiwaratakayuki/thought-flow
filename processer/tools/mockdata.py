@@ -2,7 +2,7 @@ import random, string
 from logic.save import buildModel, _save
 
 import numpy as np
-from dto import DTO
+from data_loader.dto import BaseDataDTO
 from doc2vec.indexer.dto import build_mock_sentiment_result 
 
 
@@ -24,7 +24,7 @@ def main():
             
             for i in range(n_samples)
     ]
-    datas = [DTO(body='', title='', data={}) for i in range(n_samples)]
+    datas = [BaseDataDTO(body='', title='', data={}) for i in range(n_samples)]
     vectors = np.random.rand(n_samples, 10)
     sentiments = [build_mock_sentiment_result(n_samples=n_samples, d1=10) for i in range(n_samples)]
        

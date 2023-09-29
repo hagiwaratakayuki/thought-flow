@@ -3,14 +3,16 @@ import numpy as np
 from db import text, cluster, cluster_member, model as db_model, edge, cluster_keyword
 from multiprocessing import Pool
 from collections import deque, defaultdict
-from processer.db import text_keyword
-
+from db import text_keyword
+from typing import Iterable
 from ridgedetect.taged import Taged
 from doc2vec import Doc2Vec
 from doc2vec.indexer.dto import SentimentResult
 from logic.data import date_converter
 from db.util.chunked import Chunker
-import uuid
+from doc2vec.indexer.dto import SentimentResult
+import hashlib
+from data_loader.dto import BaseDataDTO
 
 def process(loader):
     vectaizer = buildVectaizer()
@@ -73,25 +75,27 @@ def buildVectaizer():
 #クラスタリング　+ キーワード抽出
 #保存
 
-def _save(datas, model:Model):
+def _save(datas:Iterable[tuple[np.ndarray, SentimentResult, Iterable[str], BaseDataDTO]], model:Model):
    
     tags_map = {}
     index2id = {}
     index2published = {}
+    index2sentiments:dict[int, SentimentResult] = {}
     vectors_map = {}
     
     index = 0
     
     shape = [0, 0]
     is_first = True
-    for vector, sentimentResults, keywords, data in datas:
+    for vector, sentimentResult, keywords, data in datas:
         
         
         if is_first == True:
             is_first = False
             shape[1] = vector.shape[0] 
         vectors_map[index] = vector
-        index2id[index] = uuid.uuid4()
+        index2sentiments[index] = sentimentResult
+        index2id[index] = hashlib.md5()
         tags_map[index] = keywords
         index2published[index] = data.published
         index +=1  
@@ -137,7 +141,7 @@ def _save(datas, model:Model):
     edge_chunk = None
     """
 
-    
+
     cluster_chunker = Chunker()
     members_chunk = deque()
     
@@ -195,11 +199,11 @@ def _save(datas, model:Model):
     index = 0
     model = Model()
     keyword_chunk = Chunker()
-    for vector, sentimentResults, keywords, data in datas:
+    for vector, sentimentResult, keywords, data in datas:
         eid = index2id[index]
         link_to = [index2id[to_index] for to_index in taged.graph[index]]
         linked_count = linked_counts_map[index]
-        model.save(eid=eid, data=data, vector=vector, sentiment_result=sentimentResults,linked_to=link_to, linked_count=linked_count)
+        model.save(eid=eid, data=data, vector=vector, sentiment_result=sentimentResult,linked_to=link_to, linked_count=linked_count)
         for keyword in keywords:
             keyword_model = text_keyword.TextKeyword()
             keyword_model.published = data.published

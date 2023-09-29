@@ -10,7 +10,7 @@ class MyTestCase(unittest.TestCase):
 
     @patch("db.model.client")
     def test_multi(self, client_patch:MagicMock):
-        entity = TestModel(eid=1)
+        entity = TestModel(id=1)
         entity.target = 'test'
         put_multi([entity])
         self.assertIn(call.key('TestModel', 1), client_patch.mock_calls)

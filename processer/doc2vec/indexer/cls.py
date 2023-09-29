@@ -33,7 +33,7 @@ class Indexer:
             nodes.append((scored_subnodes, count, line, ))
             count += 1
         if count == 0:
-            return None, None
+            return None, None, None
         nodeslen  = count - int(count > 1)
     
        
