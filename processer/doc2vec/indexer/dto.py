@@ -14,7 +14,7 @@ class SentimentResult:
     vectors:SentinmentVector
     weights:SentimentWeights
 
-def build_mock_sentiment_result(n_samples:int, d1:int):
+def build_mock_sentiment_result(d1:int):
     neutral = random.random()
     positive = random.random()
     negative = random.random()
@@ -23,9 +23,9 @@ def build_mock_sentiment_result(n_samples:int, d1:int):
     weights.neutral = neutral / total
     weights.positive = positive / total
     weights.negative = negative / total
-    neutral = np.random.rand(n_samples, d1)
-    positive = np.random.rand(n_samples, d1)
-    negative = np.random.rand(n_samples, d1)
+    neutral = np.random.rand(d1)
+    positive = np.random.rand(d1)
+    negative = np.random.rand(d1)
     vectors = SentinmentVector()
 
     vectors.neutral = neutral 

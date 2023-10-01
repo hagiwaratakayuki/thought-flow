@@ -13,6 +13,7 @@ from db.util.chunked import Chunker
 from doc2vec.indexer.dto import SentimentResult
 import hashlib
 from data_loader.dto import BaseDataDTO
+from cluster.get_position import get_position
 
 def process(loader):
     vectaizer = buildVectaizer()
@@ -38,8 +39,8 @@ class Model:
         self._vectotrs = []
         self._keywords = []
 
-    def save(self, eid, data, vector, sentiment_result:SentimentResult, linked_to:list[str], linked_count:int):
-        textEntity = text.Text(eid=eid)
+    def save(self, id, data, vector, sentiment_result:SentimentResult, linked_to:list[str], linked_count:int):
+        textEntity = text.Text(id=id)
         sentiment = {'neautral':sentiment_result.weights.neutral, 'negative':sentiment_result.weights.negative, 'positive':sentiment_result.weights.positive}
         textEntity.setProperty('',  
                                data.body, 
@@ -77,11 +78,12 @@ def buildVectaizer():
 
 def _save(datas:Iterable[tuple[np.ndarray, SentimentResult, Iterable[str], BaseDataDTO]], model:Model):
    
-    tags_map = {}
+    index2tag = {}
     index2id = {}
     index2published = {}
     index2sentiments:dict[int, SentimentResult] = {}
-    vectors_map = {}
+
+    index2vector = {}
     
     index = 0
     
@@ -93,10 +95,10 @@ def _save(datas:Iterable[tuple[np.ndarray, SentimentResult, Iterable[str], BaseD
         if is_first == True:
             is_first = False
             shape[1] = vector.shape[0] 
-        vectors_map[index] = vector
+        index2vector[index] = vector
         index2sentiments[index] = sentimentResult
         index2id[index] = hashlib.md5()
-        tags_map[index] = keywords
+        index2tag[index] = keywords
         index2published[index] = data.published
         index +=1  
         
@@ -111,11 +113,12 @@ def _save(datas:Iterable[tuple[np.ndarray, SentimentResult, Iterable[str], BaseD
   
     
    
-    for i, v in vectors_map.items():
+    for i, v in index2vector.items():
+       
         vectors[i] = v
    
     taged = Taged()
-    taged.fit(tags_map=tags_map, vectors=vectors, sample=32)
+    taged.fit(tags_map=index2tag, vectors=vectors, sample=32)
 
    
     #edge_chunk = Chunker()
@@ -148,9 +151,12 @@ def _save(datas:Iterable[tuple[np.ndarray, SentimentResult, Iterable[str], BaseD
     member_model_chunk = Chunker()
 
     cluster_keyword_chunk = deque()
+    member_positions_chunk = deque()
     keyword_model_chunk = Chunker()
 
     for cluster_id, cluster_members in taged.clusters.items():
+        positions = get_position(index2sentiments=index2sentiments, cluster_members=cluster_members)
+        member_positions_chunk.append(positions)
         cluster_model = cluster.Cluster()
         cluster_model.member_count = len(cluster_members)
         cluster_model.short_keywords = list(taged.tag_index[cluster_id])[:10]
@@ -170,11 +176,13 @@ def _save(datas:Iterable[tuple[np.ndarray, SentimentResult, Iterable[str], BaseD
                 member_model_chunk=member_model_chunk,
                 index2published=index2published,
                 taged=taged,
-                keyword_model_chunk=keyword_model_chunk
+                keyword_model_chunk=keyword_model_chunk,
+                member_positions_chunk=member_positions_chunk
 
             )
             members_chunk = deque()
             cluster_keyword_chunk = deque()
+            member_positions_chunk = deque()
                       
             
            
@@ -189,10 +197,12 @@ def _save(datas:Iterable[tuple[np.ndarray, SentimentResult, Iterable[str], BaseD
             member_model_chunk=member_model_chunk,
             index2published=index2published,
             taged=taged,
-            keyword_model_chunk=keyword_model_chunk
+            keyword_model_chunk=keyword_model_chunk,
+            member_positions_chunk=member_positions_chunk
         )
         members_chunk = deque()
         keyword_chunk = deque()
+        member_positions_chunk = deque()
     member_model_chunk.close()
     keyword_model_chunk.close()
 
@@ -200,16 +210,16 @@ def _save(datas:Iterable[tuple[np.ndarray, SentimentResult, Iterable[str], BaseD
     model = Model()
     keyword_chunk = Chunker()
     for vector, sentimentResult, keywords, data in datas:
-        eid = index2id[index]
+        id = index2id[index]
         link_to = [index2id[to_index] for to_index in taged.graph[index]]
         linked_count = linked_counts_map[index]
-        model.save(eid=eid, data=data, vector=vector, sentiment_result=sentimentResult,linked_to=link_to, linked_count=linked_count)
+        model.save(id=id, data=data, vector=vector, sentiment_result=sentimentResult,linked_to=link_to, linked_count=linked_count)
         for keyword in keywords:
             keyword_model = text_keyword.TextKeyword()
             keyword_model.published = data.published
             keyword_model.linked_count = linked_count
             keyword_model.keyword = keyword
-            keyword_model.text_id = eid
+            keyword_model.text_id = id
             keyword_chunk.put(keyword_model)
         index += 1
             
@@ -231,13 +241,14 @@ def _put_cluster_data(
         member_model_chunk:Chunker, 
         index2published,
         taged,
-        keyword_model_chunk:Chunker
+        keyword_model_chunk:Chunker,
+        member_positions_chunk:deque
         
     ):
     
-    for entity, members, keywords in zip(entities, members_chunk, cluster_keyword_chunk):
+    for entity, members, keywords, positions in zip(entities, members_chunk, cluster_keyword_chunk, member_positions_chunk):
             
-        for member in members:
+        for member, position in zip(members, positions):
             member_model =  cluster_member.ClusterMember()
             member_model.cluster_id = entity.id
             member_model.text_id = index2id[member]
@@ -245,6 +256,7 @@ def _put_cluster_data(
             published = index2published[member]
             member_model.linked_count = linked_count
             member_model.published = published
+            member_model.position = position
            
             member_model_chunk.put(member_model)
         for keyword in keywords:

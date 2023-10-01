@@ -20,7 +20,7 @@ class RidgeDitect(object):
         
         nearby_lengths = nearby_penalties ** 0.5
    
-        guide_vectors = np.einsum('ijk,ij->ik', nearby_vectors, 1 / nearby_penalties)
+        guide_vectors = np.einsum('ijk,ij->ik', nearby_vectors, 1 / nearby_penalties) 
         scores = np.einsum('ijk,ik -> ij', nearby_vectors, guide_vectors) / (nearby_lengths * np.linalg.norm(guide_vectors, 2))
         sorted_args = np.argsort(scores, axis=1)[:, ::-1]
         sorted_nearbys = np.take_along_axis(nearbys, sorted_args, axis=1)

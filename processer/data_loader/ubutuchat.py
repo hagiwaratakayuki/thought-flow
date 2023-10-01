@@ -6,16 +6,18 @@ def ubuntu_load(path):
     columnmap.body = 5
     columnmap.data = _get_data
     columnmap.author = 3
-    columnmap.authorid =
+    columnmap.authorid = 3
+
+
 
         
         
     
-    return csv_load(columnmap=columnmap, path=path)
+    return csv_load(columnmap=columnmap, published_pattern="%Y-%m-%dT%H:%M:%S.%fZ", path=path)
 
 def _get_data(row:list):
     return {
-        'from':row[3],
         'to':row[4] or '',
-        
+        'dialogueid':row[1]
+
     }
