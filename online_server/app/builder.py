@@ -1,16 +1,10 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app import error_hundling
+from app import error_hundling, middleware
 
-app = FastAPI()
+def build(app:FastAPI):
+    error_hundling.add_hundler(app=app)
+    middleware.bind(app=app)
 
 
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["GET"],
-    allow_headers=["*"],
-)
-error_hundling.add_hundler(app=app)

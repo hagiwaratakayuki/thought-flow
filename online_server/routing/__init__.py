@@ -1,8 +1,12 @@
 
 from fastapi import FastAPI, APIRouter
-import os
+from routing import cluster, text
 
-routings:list[tuple[str,APIRouter]] = []
+
+routings:list[tuple[str,APIRouter]] = [
+    cluster.routing_tuple,
+    text.routing_tuple
+]
 
 
 

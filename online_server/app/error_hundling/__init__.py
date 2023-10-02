@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from online_server.app.error_hundling import status_exception
+from app.error_hundling import status_exception
 binders = [status_exception.binder]
 
 

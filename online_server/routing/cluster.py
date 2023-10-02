@@ -8,6 +8,8 @@ from app.error_hundling.status_exception import StatusException
 from pydantic import BaseModel
 from routing.return_models.text.overview import TextOverView
 from routing.return_models.text.overviews import TextOverViews
+from .util import picker
+from .router import get_routing_tuple
 
 router = APIRouter()
 
@@ -68,3 +70,4 @@ def get_members_by_publishedate(
         raise StatusException(status=status.HTTP_400_BAD_REQUEST)
     return [TextOverView(id=mem.id, **mem) for mem in members] # type: ignore
 
+routing_tuple = get_routing_tuple(__file__, router)

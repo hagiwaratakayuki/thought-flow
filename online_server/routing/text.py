@@ -13,7 +13,7 @@ from pydantic import BaseModel
 from typing import List
 from db.text import Text
 from app.error_hundling.status_exception import StatusException
-
+from .router import get_routing_tuple
 
 
 
@@ -88,3 +88,4 @@ def get_link_to(eids: list[str]) -> List[TextOverView]:
     return [TextOverView(id=e.id, **e) for e in text_entities] # type: ignore
     
 
+routing_tuple = get_routing_tuple(__file__, router)

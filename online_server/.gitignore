@@ -1,5 +1,3 @@
-.vscode*
-google-cloud*
 Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -162,3 +160,4 @@ cython_debug/
 #.idea/
 
 example/
+**/__pycache__/*
