@@ -41,19 +41,20 @@ class Model:
 
     def save(self, id, data, vector, sentiment_result:SentimentResult, linked_to:list[str], linked_count:int):
         textEntity = text.Text(id=id)
-        sentiment = {'neautral':sentiment_result.weights.neutral, 'negative':sentiment_result.weights.negative, 'positive':sentiment_result.weights.positive}
+        sentiment = {'position':sentiment_result.vectors.neutral.tolist(), 'direction':(sentiment_result.vectors.positive - sentiment_result.vectors.negative).tolist()}
         textEntity.setProperty('',  
                                data.body, 
                                dict(vector=vector.tolist(), sentiment=sentiment),
                                linked_to=linked_to, 
                                linked_count=linked_count, 
-                               published=date_converter.convert(data.published))
+                               published=data.published)
         self._chunk.append(textEntity)
         
         
         
         if len(self._chunk) < 30:
             return
+        
         entities = db_model.put_multi(self._chunk)
         
 
@@ -97,7 +98,8 @@ def _save(datas:Iterable[tuple[np.ndarray, SentimentResult, Iterable[str], BaseD
             shape[1] = vector.shape[0] 
         index2vector[index] = vector
         index2sentiments[index] = sentimentResult
-        index2id[index] = hashlib.md5().hexdigest()
+        id_binary = '/'.join([data.title , data.body,  data.author, data.authorid]).encode('utf-8')
+        index2id[index] = hashlib.md5(id_binary).hexdigest()
         index2tag[index] = keywords
         index2published[index] = data.published
         index +=1  
@@ -210,6 +212,7 @@ def _save(datas:Iterable[tuple[np.ndarray, SentimentResult, Iterable[str], BaseD
     model = Model()
     keyword_chunk = Chunker()
     for vector, sentimentResult, keywords, data in datas:
+        
         id = index2id[index]
         link_to = [index2id[to_index] for to_index in taged.graph[index]]
         linked_count = linked_counts_map[index]

@@ -1,5 +1,6 @@
 from fastapi import APIRouter, status
-from .query.text import get_all_as_vertex, get_text_keyword, get_linked_text as linked_text
+import json, numpy as np
+from .query.text import get_all_summary, get_text_keyword, get_linked_text as linked_text
 
 from .query.cluster import get_clusters_by_text
 
@@ -14,14 +15,73 @@ from typing import List
 from db.text import Text
 from app.error_hundling.status_exception import StatusException
 from .router import get_routing_tuple
+from ..data_types.position_data import PositionData
 
-
-
-
+none_type = type(None)  
 router = APIRouter()
-@router.get('/all_as_vertex') 
-def all_as_vertex() -> List[TextOverView]:
-    return [TextOverView(id=e.id, **e) for e in get_all_as_vertex.fetch()]
+@router.get('/all_summary')
+ 
+def all_as_vertex() -> list[TextOverView]:
+    index = 0.0
+    total_center:np.ndarray | None = None
+    entity_map = {}
+    shape = [0, 0]
+    is_first = True
+    for e in get_all_summary.fetch():
+        data:PositionData = json.loads(e['data'])
+        position = np.array(data['position'])
+        direction = np.array(data['direction'])
+        if is_first == True:
+            is_first = False
+            shape[1] = direction.shape[0]
+
+        if type(total_center) == none_type:
+            total_center = position
+        else:
+            total_center += position
+        entity_map[index] = {'entitie':e, 'position':position, 'direction':direction}
+        index += 1.0
+
+
+    center:np.ndarray = total_center / index #type: ignore
+    
+    totaldifference = 0.0
+    intindex = int(index)
+    shape[0] = intindex
+    
+    
+        
+    direction_vectors = np.zeros(shape=shape)
+    positions_vectors  = np.zeros(shape=shape)
+    for i in range(0, intindex):
+       
+        direction_vectors[i] = entity_map[i]['direction'] 
+        positions_vectors[i] = entity_map[i]['position']
+    directions = np.dot(a=direction_vectors , b=center) # type: ignore
+    directions[directions >= 0.0] = 1.0
+    directions[directions < 0.0] = -1.0
+    positions = np.linalg.norm(positions_vectors, axis=1)
+    max_norm = np.max(positions)
+    positions *= directions
+    positions /= max_norm
+    
+
+    
+
+
+
+
+
+
+
+    ret = [TextOverView(
+                id=entity_map[i]['entity'].id or entity_map[i]['entity'].key.name, 
+                position=positions[i],
+                **entity_map[i]['entity']
+            ) 
+        for i in range(0, intindex)]
+    return ret
+
 
 class TextFull(BaseModel):
     title: str = ''
@@ -29,12 +89,12 @@ class TextFull(BaseModel):
     published: str = ''
     auther: str = ''
     auther_id: str = ''
-    keywords: list[str]
-    clustres: list[ClusterOverView] | None
-    clustres_next: None | str
-    linke_to: list | None
-    linked_from: list[TextOverView] | None
-    linked_from_next: None | str
+    keywords: list[str] = []
+    clustres: list[ClusterOverView] | None = None
+    clustres_next: None | str = None
+    linke_to: list | None = None
+    linked_from: list[TextOverView] | None = None
+    linked_from_next: None | str = None
 
 
 

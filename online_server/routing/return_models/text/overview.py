@@ -5,7 +5,9 @@ class TextOverView(BaseModel):
     published:datetime
     body:str
     author:str
+    author_id:str
     linked_count:int
-    link_to: list[str] | None
+    link_to: list[str] | None = None
+    position:float | None
 
     

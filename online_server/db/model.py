@@ -5,7 +5,7 @@ from collections.abc import Iterable
 from typing import List
 client = None
 
-
+datastore.Key
 def get_client():
     global client
     if client is None:
@@ -13,6 +13,7 @@ def get_client():
     return client
 
 PT = re.compile('^_')
+
 class Model(object):
     _entity_options:dict
     _entity = None

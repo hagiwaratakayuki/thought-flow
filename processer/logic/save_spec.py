@@ -35,7 +35,7 @@ class MyTestCase(unittest.TestCase):
     
         with patch("db.model.client") as client_mock:
             
-            print(_save(datas=zip(vectors, sentiments, keywords, datas), model=db_model))
+            print(_save(datas=list(zip(vectors, sentiments, keywords, datas)), model=db_model))
     
         
 def get_random_date(startYear, endYear):

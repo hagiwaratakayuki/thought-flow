@@ -7,5 +7,6 @@ class ClusterMember(Model):
     text_id:str
     linked_count:int
     published:datetime
+    position:float
     
     

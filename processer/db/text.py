@@ -1,5 +1,5 @@
 from .model import Model
-import json
+import json, math
 from datetime import datetime
 class Text(Model):
     body:str
@@ -10,6 +10,7 @@ class Text(Model):
     link_to: list[str] | None
     linked_count:int
     published:datetime
+    weight:float
      
     def __init__(self, *args, **kwargs) -> None:
         self._entity_options = { "exclude_from_indexes":("data","body", "title", )}
@@ -21,4 +22,5 @@ class Text(Model):
         self.published = published
         self.data = json.dumps(data)
         self.linked_count = linked_count
+        self.weight = math.log(linked_count) * (float(published.year) + float(published.month) / 100.0 + float(published.day)/ 10000.0) 
         

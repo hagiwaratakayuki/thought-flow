@@ -98,7 +98,13 @@ def copy_updates(target_directories):
 
 if __name__ == "__main__":
    print('start', datetime.datetime.now())
-   copy_updates(['online_server/db', 'processer/db'])
+   updates = [
+      ['online_server/db', 'processer/db'],
+      ['online_server/data_types', 'processer/data_types']
+
+   ]
+   for update in updates:
+    copy_updates(update)
    print('done', datetime.datetime.now())
            
 

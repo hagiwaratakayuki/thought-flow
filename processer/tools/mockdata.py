@@ -34,7 +34,7 @@ def main():
 
 
                 
-        print(_save(datas=zip(vectors, sentiments, keywords, datas), model=db_model))
+        print(_save(datas=list(zip(vectors, sentiments, keywords, datas)), model=db_model))
     
 
 
