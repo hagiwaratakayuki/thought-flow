@@ -15,7 +15,7 @@ from typing import List
 from db.text import Text
 from app.error_hundling.status_exception import StatusException
 from .router import get_routing_tuple
-from ..data_types.position_data import PositionData
+from data_types.position_data import PositionData
 
 none_type = type(None)  
 router = APIRouter()
@@ -28,7 +28,9 @@ def all_as_vertex() -> list[TextOverView]:
     shape = [0, 0]
     is_first = True
     for e in get_all_summary.fetch():
-        data:PositionData = json.loads(e['data'])
+        
+        data:PositionData = json.loads(e['data'])['sentiment']
+        
         position = np.array(data['position'])
         direction = np.array(data['direction'])
         if is_first == True:
@@ -39,7 +41,7 @@ def all_as_vertex() -> list[TextOverView]:
             total_center = position
         else:
             total_center += position
-        entity_map[index] = {'entitie':e, 'position':position, 'direction':direction}
+        entity_map[index] = {'entity':e, 'position':position, 'direction':direction}
         index += 1.0
 
 

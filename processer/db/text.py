@@ -22,5 +22,11 @@ class Text(Model):
         self.published = published
         self.data = json.dumps(data)
         self.linked_count = linked_count
-        self.weight = math.log(linked_count) * (float(published.year) + float(published.month) / 100.0 + float(published.day)/ 10000.0) 
+        if linked_count == 0:
+            weight = 0.0
+        else:
+            weight = math.log(linked_count) * (float(published.year) + float(published.month) / 100.0 + float(published.day)/ 10000.0) 
+
+
+        self.weight = weight
         

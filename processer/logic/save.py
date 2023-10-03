@@ -211,11 +211,12 @@ def _save(datas:Iterable[tuple[np.ndarray, SentimentResult, Iterable[str], BaseD
     index = 0
     model = Model()
     keyword_chunk = Chunker()
+    
     for vector, sentimentResult, keywords, data in datas:
         
         id = index2id[index]
         link_to = [index2id[to_index] for to_index in taged.graph[index]]
-        linked_count = linked_counts_map[index]
+        linked_count = linked_counts_map[id]
         model.save(id=id, data=data, vector=vector, sentiment_result=sentimentResult,linked_to=link_to, linked_count=linked_count)
         for keyword in keywords:
             keyword_model = text_keyword.TextKeyword()
