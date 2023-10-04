@@ -8,7 +8,7 @@ from routing.return_models.text.overview import TextOverView
 from routing.return_models.text.overviews import TextOverViews
 
 from routing.return_models.cluster.overview import ClusterOverView
-from routing.return_models.cluster.oveviews import ClusterOverViews
+from routing.return_models.cluster.overviews import ClusterOverViews
 from pydantic import BaseModel
 
 from typing import List
@@ -17,7 +17,7 @@ from app.error_hundling.status_exception import StatusException
 from .router import get_routing_tuple
 from data_types.position_data import PositionData
 
-none_type = type(None)  
+none_type = type(None)
 router = APIRouter()
 @router.get('/all_summary')
  
@@ -101,18 +101,18 @@ class TextFull(BaseModel):
 
 
 @router.get('/entity_all',response_model=TextFull, response_model_exclude_none=True)
-def get_entity_all(eid:str)-> TextFull:
-    entity = Text.get(id=eid)
+def get_entity_all(id:str)-> TextFull:
+    entity = Text.get(id=id)
     if  entity == None:
         raise StatusException(status=status.HTTP_400_BAD_REQUEST)
     linke_to = Text.get_multi(entity.get('link_to', None)) 
-    keywords = get_text_keyword.fetch(text_id=eid)
-    cluster_entities, clusters_next = get_clusters_by_text.fetch(text_id=eid)
+    keywords = get_text_keyword.fetch(text_id=id)
+    cluster_entities, clusters_next = get_clusters_by_text.fetch(text_id=id)
     if cluster_entities == None:
         clusters = None
     else:
         clusters = [ClusterOverView(**e) for e in cluster_entities]
-    linked_from, linked_from_next = get_text_keyword.fetch(text_id=eid)
+    linked_from, linked_from_next = get_text_keyword.fetch(text_id=id)
     return TextFull(title=entity["title"], 
                     body=entity["body"],
                     published=entity["published"],
@@ -127,24 +127,25 @@ def get_entity_all(eid:str)-> TextFull:
         )
 
 @router.get('/get_clusters',response_model=ClusterOverViews, response_model_exclude_none=True)
-def get_clusters(eid:str, cursor:str) -> ClusterOverViews:
-    cluster_entities, next_cursor =  get_clusters_by_text.fetch(text_id=eid, cursor=cursor)
+def get_clusters(id:str, cursor:str | None  = None) -> ClusterOverViews:
+    cluster_entities, next_cursor =  get_clusters_by_text.fetch(text_id=id, cursor=cursor)
+   
     if cluster_entities == None:
         raise StatusException(status=status.HTTP_400_BAD_REQUEST)
     clusters = [ClusterOverView(id=e.id, **e) for e in cluster_entities] # type: ignore
     return ClusterOverViews(clusters=clusters, cursor=next_cursor)
 
 @router.get('/get_linked_text',response_model=TextOverViews, response_model_exclude_none=True)
-def get_linked_text(eid:str, cursor:str) -> TextOverViews:
-    text_entities, next_cursor = linked_text.fetch(text_id=eid, cursor=cursor)
+def get_linked_text(id:str, cursor:str) -> TextOverViews:
+    text_entities, next_cursor = linked_text.fetch(text_id=id, cursor=cursor)
     if text_entities == None:
         raise StatusException(status=status.HTTP_400_BAD_REQUEST)
     texts = [TextOverView(id=e.id, **e) for e in text_entities] # type: ignore
     return TextOverViews(texts=texts, cursor=next_cursor)
     
 @router.get('/get_link_to',response_model=List[TextOverViews], response_model_exclude_none=True)
-def get_link_to(eids: list[str]) -> List[TextOverView]:
-    text_entities = Text.get_multi(eids)
+def get_link_to(ids: list[str]) -> List[TextOverView]:
+    text_entities = Text.get_multi(ids)
     if text_entities == None: 
         raise StatusException(status=status.HTTP_400_BAD_REQUEST)
     return [TextOverView(id=e.id, **e) for e in text_entities] # type: ignore

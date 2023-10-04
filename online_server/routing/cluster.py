@@ -13,24 +13,24 @@ from .router import get_routing_tuple
 
 router = APIRouter()
 
-class EntityAll(BaseModel):
+class ClusterFull(BaseModel):
     keywords:list[str]
     members_list:list[TextOverView] | None
     members_list_next:str | None
     member_count:int
 
 
-@router.get('/entity_all',response_model=EntityAll, response_model_exclude_none=True)
-def get_entity_all(eid:str)-> EntityAll:
-    entity = Cluster.get(id=eid)
+@router.get('/entity_all',response_model=ClusterFull, response_model_exclude_none=True)
+def get_entity_all(id:int)-> ClusterFull:
+    entity = Cluster.get(id=id)
     if entity == None:
         raise StatusException(status=status.HTTP_400_BAD_REQUEST)
-    keywords = get_cluster_keyword.fetch(cluster_id=eid)
-    members_entities, members_list_next = get_cluster_member.fetch(cluster_id=eid)
+    keywords = get_cluster_keyword.fetch(cluster_id=id)
+    members_entities, members_list_next = get_cluster_member.fetch(cluster_id=id)
     members_list: list | None = None
     if members_entities  != None:
         members_list = [TextOverView(mem.id, **mem) for mem in members_entities] # type: ignore
-    return EntityAll(
+    return ClusterFull(
         keywords=keywords,
         member_count=entity["memebr_count"],
         members_list = members_list, 
@@ -38,7 +38,7 @@ def get_entity_all(eid:str)-> EntityAll:
     )
 
 @router.get('/members', response_model=TextOverViews, response_model_exclude_none=True)
-def get_members(eid:str, cursor: None | str = None)-> TextOverViews:
+def get_members(id:str, cursor: None | str = None)-> TextOverViews:
     members_entities, members_list_next = get_cluster_member.fetch(cluster_id=eid, cursor=cursor)
     if members_entities == None:
         raise StatusException(status=status.HTTP_400_BAD_REQUEST)

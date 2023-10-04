@@ -2,15 +2,28 @@ from google.cloud import datastore
 import re
 
 from collections.abc import Iterable
-from typing import List
-client = None
+from typing import List, Literal, Any
+import time, asyncio
 
-datastore.Key
+
+
+
+client = None
+is_start_high_bulk = False
+high_bulk_limit_base = 500
+high_bulk_step_range = 0.5
+high_bulk_limit = high_bulk_limit_base
+high_bulk_start = 0
+
 def get_client():
     global client
     if client is None:
         client = datastore.Client()
     return client
+
+def start_high_bulk():
+    is_start_high_bulk = True
+    high_bulk_start = time.time()
 
 PT = re.compile('^_')
 
@@ -61,8 +74,9 @@ class Model(object):
         key = cls._get_key(path_args, kwargs, id)
         return get_client().get(key)
     @classmethod
-    def get_multi(cls, params, is_trict:bool = False) -> List[datastore.Entity] | None:
-        if params == None or not isinstance(Iterable, params):
+    def get_multi(cls, params, is_strict:bool = False) -> List[datastore.Entity] | None:
+       
+        if params == None or not isinstance(params, Iterable):
             return None
         keys = [cls._get_key(**param) for param in params]
         if len(keys) == 0:
@@ -78,7 +92,7 @@ class Model(object):
     @classmethod
     def _get_key(cls, path_args=[], kwargs={}, id=None):
         
-        _path = path_args[:]
+        _path = list(path_args)
         _path.append(cls.__name__)
         if id is not None:
             _path.append(id)
@@ -102,7 +116,11 @@ def put_multi(models:Iterable[Model]):
     get_client().put_multi(entities)
     return entities
 
-    
+#todo
+def put_as_high_bulk(models:Iterable[Model]) -> Literal['enqueue', 'exec']:
+    loop = asyncio.get_event_loop()
+    #loop.run_in_executor()
+    return 'enqueue'   
 
 
 

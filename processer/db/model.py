@@ -2,9 +2,18 @@ from google.cloud import datastore
 import re
 
 from collections.abc import Iterable
-from typing import List
-client = None
+from typing import List, Literal, Any
+import time, asyncio
 
+
+
+
+client = None
+is_start_high_bulk = False
+high_bulk_limit_base = 500
+high_bulk_step_range = 0.5
+high_bulk_limit = high_bulk_limit_base
+high_bulk_start = 0
 
 def get_client():
     global client
@@ -12,7 +21,12 @@ def get_client():
         client = datastore.Client()
     return client
 
+def start_high_bulk():
+    is_start_high_bulk = True
+    high_bulk_start = time.time()
+
 PT = re.compile('^_')
+
 class Model(object):
     _entity_options:dict
     _entity = None
@@ -101,7 +115,11 @@ def put_multi(models:Iterable[Model]):
     get_client().put_multi(entities)
     return entities
 
-    
+#todo
+def put_as_high_bulk(models:Iterable[Model]) -> Literal['enqueue', 'exec']:
+    loop = asyncio.get_event_loop()
+    #loop.run_in_executor()
+    return 'enqueue'   
 
 
 

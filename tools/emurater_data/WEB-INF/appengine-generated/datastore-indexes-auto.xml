@@ -1,4 +1,25 @@
-<!-- Indices written at 火, 3 10月 2023 18:09:46 JST -->
+<!-- Indices written at 水, 4 10月 2023 18:42:56 JST -->
 
-<datastore-indexes autoGenerate="true"/>
+<datastore-indexes autoGenerate="true">
 
+    <!-- Used 8 times in query history -->
+    <datastore-index kind="ClusterMember" ancestor="false" source="auto">
+        <property name="text_id" direction="asc"/>
+        <property name="linked_count" direction="desc"/>
+        <property name="cluster_id" direction="asc"/>
+    </datastore-index>
+
+    <!-- Used 2 times in query history -->
+    <datastore-index kind="ClusterKeyword" ancestor="false" source="auto">
+        <property name="text_id" direction="asc"/>
+        <property name="keyword" direction="asc"/>
+    </datastore-index>
+
+    <!-- Used 2 times in query history -->
+    <datastore-index kind="ClusterMember" ancestor="false" source="auto">
+        <property name="cluster_id" direction="asc"/>
+        <property name="linked_count" direction="desc"/>
+        <property name="text_id" direction="asc"/>
+    </datastore-index>
+
+</datastore-indexes>

@@ -42,9 +42,9 @@ class Model:
     def save(self, id, data, vector, sentiment_result:SentimentResult, linked_to:list[str], linked_count:int):
         textEntity = text.Text(id=id)
         sentiment = {'position':sentiment_result.vectors.neutral.tolist(), 'direction':(sentiment_result.vectors.positive - sentiment_result.vectors.negative).tolist()}
-        textEntity.setProperty('',  
-                               data.body, 
-                               dict(vector=vector.tolist(), sentiment=sentiment),
+        textEntity.setProperty(title=data.title,  
+                               body=data.body, 
+                               data=dict(vector=vector.tolist(), sentiment=sentiment),
                                linked_to=linked_to, 
                                linked_count=linked_count, 
                                published=data.published)
