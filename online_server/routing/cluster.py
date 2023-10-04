@@ -38,8 +38,8 @@ def get_entity_all(id:int)-> ClusterFull:
     )
 
 @router.get('/members', response_model=TextOverViews, response_model_exclude_none=True)
-def get_members(id:str, cursor: None | str = None)-> TextOverViews:
-    members_entities, members_list_next = get_cluster_member.fetch(cluster_id=eid, cursor=cursor)
+def get_members(id:int, cursor: None | str = None)-> TextOverViews:
+    members_entities, members_list_next = get_cluster_member.fetch(cluster_id=id, cursor=cursor)
     if members_entities == None:
         raise StatusException(status=status.HTTP_400_BAD_REQUEST)
     texts = [TextOverView(**mem) for mem in members_entities]
