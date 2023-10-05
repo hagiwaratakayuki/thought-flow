@@ -1,9 +1,8 @@
 <script>
   import Page from "../routes/+page.svelte";
-  export let Hst
-  
+  export let Hst;
 </script>
 
-<Hst.Story  title="🐱 Meow" >
-  <Page/>
+<Hst.Story>
+  <Page />
 </Hst.Story>
