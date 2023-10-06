@@ -31,7 +31,8 @@
     }
     const maxWeight = Math.log(maxConnected);
     const nodes = overviews.map(function (row) {
-      row.weight = Math.log(row.linked_count) / maxWeight;
+      row.weight = row.linked_count / maxConnected;
+      row.y = row.position;
       return row;
     });
 
