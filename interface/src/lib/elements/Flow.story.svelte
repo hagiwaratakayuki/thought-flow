@@ -1,34 +1,29 @@
 <script>
   import Flow from "./Flow.svelte";
   export let Hst;
-  /**
-   * @type {import("src/relay_types/flow").Flow}
-   */
-  const flow = [
+  const nodes = [
     {
-      id: 0,
-      x: 1,
-      y: 1,
-      size: 1,
-      label: "node1",
-      color: "blue",
+      id: 1,
+      y: 0.5,
+      published: "1990/01/01",
+      weight: 1,
     },
-    { id: 1, x: -1, y: -1, size: 3, label: "Mary", color: "red" },
+    {
+      id: 2,
+      y: -0.7,
+      published: "1990/01/10",
+      weight: 0.5,
+    },
   ];
-
-  /**
-   * @type {import("src/relay_types/flow").Edges}
-   */
   const edges = [
     {
-      from: 0,
-      to: 1,
-      type: "arrow",
+      from: 1,
+      to: 2,
     },
   ];
 
   const data = {
-    flow,
+    nodes,
     edges,
   };
 </script>

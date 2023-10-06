@@ -1,5 +1,9 @@
 import * as PIXI from "pixi.js";
-
+/**
+ * @typedef {import("$lib/relay_types/flow").Flow} Nodes
+*  @typedef {import("$lib/relay_types/flow").Edges} Edges
+*  @typedef {import("$lib/relay_types/flow").FlowEntry} Node}
+ */
 
 
 let _triangleGrphics = {};
@@ -109,25 +113,8 @@ export class FlowController {
         this._initContiners()
         this._initBackGroundScale();
 
-        const nodes = [{
-            id: 1,
-            y: 0.5,
-            date: '1990/01/01',
-            weight: 1
-        }, {
-            id: 2,
-            y: -0.7,
-            date: '1990/01/10',
-            weight: 0.5
-        }];
-        const edges = [
-            {
-                from: 1,
-                to: 2
-            }
 
-        ];
-        this.setData(nodes, edges)
+
         //this.setTransform({ scaleX: 1 / 30, scaleY: 1 / 30 })
 
 
@@ -271,7 +258,7 @@ export class FlowController {
         this._scaleContainer.position.set(this._transforms.x, this._scaleContainer.position.y)
 
         /**
-         * @type {{scale:PIXI.Graphics; year:number; month:number;}[]}
+         * @type {{scale:PIXI.Container; year:number; month:number;}[]}
          */
         const scales = this._yearMonthScales
         if (this._transforms.scaleX !== 1) {
@@ -365,23 +352,14 @@ export class FlowController {
     }
 
     /**
-     * @param {{ date: string; y: number; weight: number; id: any; }[]} nodes
-     * @param {{ from: any; to: any; }[]} edges
+     * @param {Nodes} nodes
+     * @param {Edges} edges
      */
     setData(nodes, edges) {
-        const { nodeGraphics, yearDiff, minYear } = this.addNode(nodes, edges)
+        const { yearDiff, minYear } = this.addNode(nodes, edges)
 
         this._createForegroundScale(yearDiff);
         this._createSubscale(minYear, yearDiff)
-
-
-
-
-
-
-
-
-
 
 
     }
@@ -567,10 +545,9 @@ export class FlowController {
         return (yearDiff * 365 + month * 31 + date) * this.dayStep * scaleRatio + this.padding
     }
     /**
-     * @typedef {{date:string, y:number, weight:number, id:any}} node 
-     * @typedef {{from:any, to:any}} edge
-     * @param {node[]} nodes 
-     * @param {edge[]} edges 
+     
+     * @param {Nodes} nodes 
+     * @param {Edges} edges 
      */
     addNode(nodes, edges) {
         let total = 0;
@@ -582,12 +559,15 @@ export class FlowController {
          * @type {{year:number, month:number, date:number}[]}
          *  */
         const yearMonthDates = [];
+        const pt = /\d+/g
 
         for (const node of nodes) {
             index[node.id] = { node };
             total += node.weight;
             weights.push(node.weight)
-            const [year, month, date] = node.date.split('/').map(Number);
+
+
+            const [year, month, date] = Array.from(node.published.matchAll(pt)).map(Number);
             if (year > maxYear) {
                 maxYear = year;
             }
@@ -604,7 +584,7 @@ export class FlowController {
 
         }, 0) / nodes.length)
         /**
-         * @type {[node, {year:number,month:number, date:number}, number][]}
+         * @type {[Node, {year:number,month:number, date:number}, number][]}
          */
         const nodeDatas = weights.map(function (weight, index) {
             const x = sigma === 0 ? 1 : (weight - avg) / sigma;

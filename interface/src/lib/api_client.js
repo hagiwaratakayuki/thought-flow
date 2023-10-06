@@ -27,14 +27,29 @@ export async function baseGet(baseUrl, endpoint, params = undefined) {
         }
         url += '?' + querys.join('&')
     }
-    const response = await fetch(url)
-    if (response.ok === false) {
-        return false
+
+    const response = fetch(url)
+
+    return response.then(function (response) {
+
+        if (response.ok === false) {
+            throw new SatusError(response.status)
+        }
+        return response.json()
+    })
+
+
+
+
+
+}
+
+export class SatusError extends Error {
+    /**
+     * 
+     * @param {number} status 
+     */
+    constructor(status) {
+        super('status error', { cause: status })
     }
-    return await response.json()
-
-
-
-
-
 }

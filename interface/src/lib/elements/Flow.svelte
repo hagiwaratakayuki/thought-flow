@@ -31,9 +31,7 @@
    */
   function createFlowNetwork(data) {
     controller = new FlowController(container);
-  }
-  function initSvg() {
-    //pass
+    controller.setData(data.nodes, data.edges);
   }
 </script>
 
