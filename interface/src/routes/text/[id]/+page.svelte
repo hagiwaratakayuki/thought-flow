@@ -25,7 +25,7 @@
 </script>
 
 <Row class="justify-content-md-center">
-  <Col sm="2" class="sticky-top bg-white">
+  <Col sm="2" class="sticky bg-white">
     <ul class="list-unstyled nostyle">
       <li>
         <Button
