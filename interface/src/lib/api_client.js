@@ -1,7 +1,7 @@
 /**
  * @param {string} baseUrl
  * @param {string} endpoint neded start with /
- * @param {{string:any[] | number | string | undefined }} params 
+ * @param {{string:any[] | number | string } | undefined} params 
  */
 export async function baseGet(baseUrl, endpoint, params = undefined) {
 

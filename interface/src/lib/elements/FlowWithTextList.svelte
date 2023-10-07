@@ -36,12 +36,12 @@
 {#if _isLoading == true}
   loading
 {:else if _isError == false}
-  <Row id="toppage">
-    <Col class="h-100" sm="8">
-      <Flow flow={_flow} />
-    </Col>
+  <Row class="flow">
     <Col class="h100 vertical-scroll" sm="4">
       <TextList overViews={_overViews} isNextExist={_isNextExist} />
+    </Col>
+    <Col class="h-100" sm="8">
+      <Flow flow={_flow} />
     </Col>
   </Row>
 {:else}

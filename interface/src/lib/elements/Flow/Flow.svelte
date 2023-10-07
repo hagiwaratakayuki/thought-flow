@@ -1,17 +1,19 @@
 <script>
   import { onMount, tick } from "svelte";
   import { FlowController } from "./flow";
+  import { browser } from "$app/environment";
+
   /**
    * @param {import("src/relay_types/flow").DataTransfer}
    * */
   export let flow = {};
 
-  let isClient = false;
+  let isMounted = false;
 
   onMount(function () {
-    isClient = true;
+    isMounted = true;
   });
-  $: if (isClient === true) {
+  $: if (browser === true && isMounted === true) {
     createFlowNetwork(flow);
   }
 

@@ -22,7 +22,7 @@
     },
   ];
 
-  const data = {
+  const flow = {
     nodes,
     edges,
   };

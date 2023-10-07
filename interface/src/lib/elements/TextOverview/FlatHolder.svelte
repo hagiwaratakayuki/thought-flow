@@ -3,7 +3,14 @@
   import { Row, Col, Button } from "sveltestrap";
   import { createEventDispatcher } from "svelte";
   const dispatcher = createEventDispatcher();
-
+  export let overViews = null;
+  export let isNextExist = null;
+  let _isLocked = false;
+  $: if (_isLocked == false && overViews !== null && isNextExist !== null) {
+    _overviews = overViews;
+    _isNextExist = isNextExist;
+    _isLocked = true;
+  }
   /**
    * @typedef  {import("$lib/ml_api/api_types/TextOverView").TextOverView[]} OverViews
    */
@@ -39,4 +46,3 @@
     <Button type="button" color="link" on:click={_getNext}>...more</Button>
   </p>
 {/if}
-<Row />
