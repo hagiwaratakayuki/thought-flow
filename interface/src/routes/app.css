@@ -1,0 +1,27 @@
+#container {
+    margin-top: 5%;
+}
+
+#toppage {
+    height: 80vh;
+    width: 100%;
+    margin-top: 10%;
+}
+
+.vertical-scroll {
+    height: 100%;
+    scrollbar-width: none;
+    overflow-y: scroll;
+}
+
+.vertical-scroll:hover {
+    scrollbar-width: thin;
+    scroll-behavior: smooth;
+    overscroll-behavior-y: none;
+}
+
+.sticky {
+    height: 0px;
+    position: sticky;
+    top: 0;
+}
