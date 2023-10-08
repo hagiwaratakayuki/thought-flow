@@ -50,13 +50,14 @@
     </ul>
   </Col>
   <Col sm="8">
+    <h1>{data.title}</h1>
     <div class="bg-white mb-3">
       <h2>Data</h2>
       <Row>
         <Col sm="12" md="6">
           <dl>
             <dt>Author</dt>
-            <dd>{data.auther}</dd>
+            <dd>{data.author}</dd>
             <dt>Published</dt>
             <dd>{data.published}</dd>
           </dl>
@@ -65,7 +66,7 @@
           <dl>
             <dt>Keyword</dt>
             <dd>
-              {#each data.keywords as keyword}
+              {#each data.keywords.slice(1, 5) as keyword}
                 <span class="pe-2">{keyword}</span>
               {/each}
             </dd>

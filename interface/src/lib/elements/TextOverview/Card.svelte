@@ -11,7 +11,7 @@
   <CardHeader class="bg-secondary">
     <CardTitle>
       <a href="/text/{overview.id}" class="text-white">
-        {overview.body.slice(0, 20)}...
+        {overview.title}
       </a>
     </CardTitle>
   </CardHeader>

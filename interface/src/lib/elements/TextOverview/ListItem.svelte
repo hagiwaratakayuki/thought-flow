@@ -17,7 +17,7 @@
 
 <li class="list-group-item border-start-0 border-end-0" bind:this={element}>
   <a href="/text/{overview.id}" class:selected={selectedId == overview.id}>
-    {overview.body.slice(0, 10)}
+    {overview.title.slice(0, 15)}...
   </a>
 </li>
 

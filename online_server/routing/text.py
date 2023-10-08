@@ -1,5 +1,5 @@
 from fastapi import APIRouter, status
-import json, numpy as np
+import json, numpy as np, datetime
 from .query.text import get_all_summary, get_text_keyword, get_linked_text as linked_text
 
 from .query.cluster import get_clusters_by_text
@@ -16,6 +16,7 @@ from db.text import Text
 from app.error_hundling.status_exception import StatusException
 from .router import get_routing_tuple
 from data_types.position_data import PositionData
+
 
 none_type = type(None)
 router = APIRouter()
@@ -88,39 +89,46 @@ def all_as_vertex() -> list[TextOverView]:
 class TextFull(BaseModel):
     title: str = ''
     body: str = ''
-    published: str = ''
-    auther: str = ''
+    published: datetime.datetime
+    author: str = ''
     auther_id: str = ''
     keywords: list[str] = []
     clustres: list[ClusterOverView] | None = None
     clustres_next: None | str = None
-    linke_to: list | None = None
+    link_to: list[TextOverView] | None = None
     linked_from: list[TextOverView] | None = None
     linked_from_next: None | str = None
 
 
 
 @router.get('/entity_all',response_model=TextFull, response_model_exclude_none=True)
-def get_entity_all(id:str)-> TextFull:
+def get_entity_all(id:int)-> TextFull:
     entity = Text.get(id=id)
+    print(list(entity['author']))
     if  entity == None:
         raise StatusException(status=status.HTTP_400_BAD_REQUEST)
-    linke_to = Text.get_multi(entity.get('link_to', None)) 
+    link_to_ids = [{'id':link_to_id} for link_to_id in entity.get('link_to', [])]
+    link_to = [TextOverView(id=e.id or e.key.name, **e) for e in Text.get_multi(link_to_ids) or []] #type: ignore
     keywords = get_text_keyword.fetch(text_id=id)
+    """
     cluster_entities, clusters_next = get_clusters_by_text.fetch(text_id=id)
+
     if cluster_entities == None:
         clusters = None
     else:
         clusters = [ClusterOverView(**e) for e in cluster_entities]
-    linked_from, linked_from_next = get_text_keyword.fetch(text_id=id)
+    """
+    linked_from_entities, linked_from_next = linked_text.fetch(text_id=id)
+    linked_from = [TextOverView(id=e.id or e.key.name, **e) for e in linked_from_entities or []]#type: ignore 
+
     return TextFull(title=entity["title"], 
                     body=entity["body"],
                     published=entity["published"],
-                    auther=entity["auther"],
+                    author=entity["author"],
                     auther_id=entity["author_id"],
-                    linke_to=linke_to,
-                    clustres=clusters,
-                    clustres_next=clusters_next,
+                    link_to=link_to,
+                    clustres=[],
+                    clustres_next="",
                     keywords=keywords,
                     linked_from=linked_from,
                     linked_from_next=linked_from_next

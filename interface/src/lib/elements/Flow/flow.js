@@ -619,18 +619,21 @@ export class FlowController {
             /**
              * @type {nodePosition}
              */
-            const toDdata = index[edge.to]
+            const toData = index[edge.to]
+            if (!fromData || !toData) {
+                continue;
+            }
 
-            const ang = Math.atan((toDdata.y - fromData.y) / (toDdata.x - fromData.x));
+            const ang = Math.atan((toData.y - fromData.y) / (toData.x - fromData.x));
 
-            const directinX = toDdata.x > fromData.x ? 1 : -1
-            const directinY = toDdata.y > fromData.y ? 1 : -1
+            const directinX = toData.x > fromData.x ? 1 : -1
+            const directinY = toData.y > fromData.y ? 1 : -1
 
             //PIXI のメッシュの座標系は右上起点。回転は時計回り
             //メッシュの底、左右中央をpivotに。90度回転して接続して向きを線の角度に
 
-            const toX = toDdata.x - directinX * Math.cos(ang) * (toDdata.size + 15);
-            const toY = toDdata.y - directinY * Math.sin(ang) * (toDdata.size + 15);
+            const toX = toData.x - directinX * Math.cos(ang) * (toData.size + 15);
+            const toY = toData.y - directinY * Math.sin(ang) * (toData.size + 15);
             const fromX = fromData.x + directinX * Math.cos(ang) * fromData.size
             const fromY = fromData.y + directinX * Math.sin(ang) * fromData.size;
 
@@ -638,7 +641,7 @@ export class FlowController {
 
             triangle.position.set(toX, toY)
 
-            const triAng = (fromData.x < toDdata.x ? Math.PI / -2 : Math.PI / 2) - ang;
+            const triAng = (fromData.x < toData.x ? Math.PI / -2 : Math.PI / 2) - ang;
             triangle.rotation -= triAng
             const line = new PIXI.Graphics()
 

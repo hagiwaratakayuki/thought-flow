@@ -74,8 +74,8 @@ class Model(object):
         key = cls._get_key(path_args, kwargs, id)
         return get_client().get(key)
     @classmethod
-    def get_multi(cls, params, is_trict:bool = False) -> List[datastore.Entity] | None:
-        if params == None or not isinstance(Iterable, params):
+    def get_multi(cls, params, is_strict:bool = False) -> List[datastore.Entity] | None:
+        if params == None or not isinstance(params, Iterable):
             return None
         keys = [cls._get_key(**param) for param in params]
         if len(keys) == 0:
@@ -91,7 +91,7 @@ class Model(object):
     @classmethod
     def _get_key(cls, path_args=[], kwargs={}, id=None):
         
-        _path = path_args[:]
+        _path = list(path_args)
         _path.append(cls.__name__)
         if id is not None:
             _path.append(id)

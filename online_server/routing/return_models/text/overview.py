@@ -8,7 +8,7 @@ class TextOverView(BaseModel):
     author:str
     author_id:str
     linked_count:int
-    link_to: list[str] | None = None
-    position:float | None
+    link_to: list[str | int] | None = None
+    position:float | None = None
 
     

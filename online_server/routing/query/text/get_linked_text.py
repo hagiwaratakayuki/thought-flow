@@ -11,4 +11,4 @@ def fetch(text_id:str, cursor: str | None = None, limit:int = 10):
     next_page_token = None
     if itr.next_page_token != None:
         next_page_token = itr.next_page_token.decode('utf-8') 
-    return Text.get_multi([e.id for e in itr]), next_page_token
+    return Text.get_multi([{'id':e.id or e.key.name} for e in itr]), next_page_token

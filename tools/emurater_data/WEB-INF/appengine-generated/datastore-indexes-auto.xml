@@ -1,25 +1,24 @@
-<!-- Indices written at 水, 4 10月 2023 18:42:56 JST -->
+<!-- Indices written at 日, 8 10月 2023 23:22:23 JST -->
 
 <datastore-indexes autoGenerate="true">
 
-    <!-- Used 8 times in query history -->
-    <datastore-index kind="ClusterMember" ancestor="false" source="auto">
-        <property name="text_id" direction="asc"/>
-        <property name="linked_count" direction="desc"/>
-        <property name="cluster_id" direction="asc"/>
-    </datastore-index>
-
-    <!-- Used 2 times in query history -->
-    <datastore-index kind="ClusterKeyword" ancestor="false" source="auto">
+    <!-- Used 20 times in query history -->
+    <datastore-index kind="TextKeyword" ancestor="false" source="auto">
         <property name="text_id" direction="asc"/>
         <property name="keyword" direction="asc"/>
     </datastore-index>
 
-    <!-- Used 2 times in query history -->
+    <!-- Used 4 times in query history -->
     <datastore-index kind="ClusterMember" ancestor="false" source="auto">
-        <property name="cluster_id" direction="asc"/>
-        <property name="linked_count" direction="desc"/>
         <property name="text_id" direction="asc"/>
+        <property name="linked_count" direction="desc"/>
+        <property name="cluster_id" direction="asc"/>
+    </datastore-index>
+
+    <!-- Used 17 times in query history -->
+    <datastore-index kind="Text" ancestor="false" source="auto">
+        <property name="link_to" direction="asc"/>
+        <property name="linked_count" direction="asc"/>
     </datastore-index>
 
 </datastore-indexes>
