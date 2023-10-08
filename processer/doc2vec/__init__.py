@@ -11,7 +11,7 @@ from data_loader.dto import BaseDataDTO
 
 
 class Doc2Vec:
-    def __init__(self, modelfile:str = MODEL_PATH, workers:int = multi.cpu_count()) -> None:
+    def __init__(self, modelfile:str = MODEL_PATH, workers:int = 1) -> None:
         tokenaizer = NLTKTokenazer()
         vectaizer = Vectaizer(modelfile)
         analizer = NLTKAnalizer()
@@ -20,15 +20,20 @@ class Doc2Vec:
     
     def exec(self, datas:Iterable[BaseDataDTO]):
         ret = deque()
+        """
         with Pool(self._workers) as p:
             for r in p.imap_unordered(self._callIndexer, datas):
                 ret.append(r)
             return ret
+        """
+        for data in datas:
+            ret.append(self._callIndexer(data))
+        return ret
 
 
         
       
 
     def _callIndexer(self, data:BaseDataDTO):
-        return *self._indexer.exec(data.body), data
+        return *self._indexer.exec(data.title + '\n' + data.body), data
         

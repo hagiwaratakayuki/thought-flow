@@ -8,6 +8,7 @@
 export type Keywords = string[];
 export type MembersList = TextOverView[] | null;
 export type Id = string | number;
+export type Title = string;
 export type Published = string;
 export type Body = string;
 export type Author = string;
@@ -27,6 +28,7 @@ export interface ClusterFull {
 }
 export interface TextOverView {
   id: Id;
+  title: Title;
   published: Published;
   body: Body;
   author: Author;

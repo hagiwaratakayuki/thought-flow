@@ -1,5 +1,6 @@
 
 import numpy as np
+import logging
 from db import text, cluster, cluster_member, model as db_model, edge, cluster_keyword
 from multiprocessing import Pool
 from collections import deque, defaultdict
@@ -11,7 +12,7 @@ from doc2vec.indexer.dto import SentimentResult
 from logic.data import date_converter
 from db.util.chunked import Chunker
 from doc2vec.indexer.dto import SentimentResult
-import hashlib
+
 from data_loader.dto import BaseDataDTO
 from cluster.get_position import get_position
 
@@ -41,6 +42,9 @@ class Model:
 
     def save(self, id, data, vector, sentiment_result:SentimentResult, linked_to:list[str], linked_count:int):
         textEntity = text.Text(id=id)
+        direction_vector = sentiment_result.vectors.positive - sentiment_result.vectors.negative
+        if sum(direction_vector) == 0:
+            direction_vector = sentiment_result.vectors.neutral
         sentiment = {'position':sentiment_result.vectors.neutral.tolist(), 'direction':(sentiment_result.vectors.positive - sentiment_result.vectors.negative).tolist()}
         textEntity.setProperty(title=data.title,  
                                body=data.body, 
@@ -56,10 +60,11 @@ class Model:
             return
         
         entities = db_model.put_multi(self._chunk)
+        self._chunk = []
         
 
         return entities
-    def finish(self):
+    def close(self):
         entities = db_model.put_multi(self._chunk)
         return entities
 
@@ -90,6 +95,7 @@ def _save(datas:Iterable[tuple[np.ndarray, SentimentResult, Iterable[str], BaseD
     
     shape = [0, 0]
     is_first = True
+    logging.info('start saving')
     for vector, sentimentResult, keywords, data in datas:
         
         
@@ -118,9 +124,10 @@ def _save(datas:Iterable[tuple[np.ndarray, SentimentResult, Iterable[str], BaseD
     for i, v in index2vector.items():
        
         vectors[i] = v
-   
+    logging.info('start create graph')
     taged = Taged()
     taged.fit(tags_map=index2tag, vectors=vectors, sample=32)
+    logging.info('fit done')
 
    
     #edge_chunk = Chunker()
@@ -155,7 +162,7 @@ def _save(datas:Iterable[tuple[np.ndarray, SentimentResult, Iterable[str], BaseD
     cluster_keyword_chunk = deque()
     member_positions_chunk = deque()
     keyword_model_chunk = Chunker()
-
+    logging.info('start cluster save')
     for cluster_id, cluster_members in taged.clusters.items():
         positions = get_position(index2sentiments=index2sentiments, cluster_members=cluster_members)
         member_positions_chunk.append(positions)
@@ -211,7 +218,7 @@ def _save(datas:Iterable[tuple[np.ndarray, SentimentResult, Iterable[str], BaseD
     index = 0
     model = Model()
     keyword_chunk = Chunker()
-    
+    logging.info('start text save')
     for vector, sentimentResult, keywords, data in datas:
         
         id = index2id[index]
@@ -229,9 +236,9 @@ def _save(datas:Iterable[tuple[np.ndarray, SentimentResult, Iterable[str], BaseD
             
            
     
-    entities = model.finish()
+    entities = model.close()
     keyword_chunk.close()
-    
+    logging.info('done')
    
 
     

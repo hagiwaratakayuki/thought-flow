@@ -30,12 +30,12 @@ PT = re.compile('^_')
 class Model(object):
     _entity_options:dict
     _entity = None
-    def __init__(self, id=None, entry_options={}, path_args=[], kwargs={}) -> None:
+    def __init__(self, id=None, entity_options={}, path_args=[], kwargs={}) -> None:
         self._path_args = path_args
         self._kwargs = kwargs
-        self._entity_options = entry_options
+        self._entity_options = entity_options
         self._id = id
-        self._entity_options = entry_options
+        
     @classmethod
     def query(cls):
         
@@ -74,9 +74,8 @@ class Model(object):
         key = cls._get_key(path_args, kwargs, id)
         return get_client().get(key)
     @classmethod
-    def get_multi(cls, params, is_strict:bool = False) -> List[datastore.Entity] | None:
-       
-        if params == None or not isinstance(params, Iterable):
+    def get_multi(cls, params, is_trict:bool = False) -> List[datastore.Entity] | None:
+        if params == None or not isinstance(Iterable, params):
             return None
         keys = [cls._get_key(**param) for param in params]
         if len(keys) == 0:
@@ -92,7 +91,7 @@ class Model(object):
     @classmethod
     def _get_key(cls, path_args=[], kwargs={}, id=None):
         
-        _path = list(path_args)
+        _path = path_args[:]
         _path.append(cls.__name__)
         if id is not None:
             _path.append(id)

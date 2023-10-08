@@ -6,6 +6,7 @@
  */
 
 export type Id = string | number;
+export type Title = string;
 export type Published = string;
 export type Body = string;
 export type Author = string;
@@ -16,6 +17,7 @@ export type Position = number | null;
 
 export interface TextOverView {
   id: Id;
+  title: Title;
   published: Published;
   body: Body;
   author: Author;

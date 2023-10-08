@@ -30,12 +30,12 @@ PT = re.compile('^_')
 class Model(object):
     _entity_options:dict
     _entity = None
-    def __init__(self, id=None, entry_options={}, path_args=[], kwargs={}) -> None:
+    def __init__(self, id=None, entity_options={}, path_args=[], kwargs={}) -> None:
         self._path_args = path_args
         self._kwargs = kwargs
-        self._entity_options = entry_options
+        self._entity_options = entity_options
         self._id = id
-        self._entity_options = entry_options
+        
     @classmethod
     def query(cls):
         

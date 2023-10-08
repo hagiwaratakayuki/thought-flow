@@ -2,20 +2,20 @@ import os, logging
 logging.basicConfig(level=logging.INFO)
 from gensim.models import KeyedVectors
 import datetime
-kv:KeyedVectors
-t_fuk_flag_undefined = True
+kv:KeyedVectors | None = None
+
 
 MODEL_PATH = 'example/fasttext_model/wiki-news-300d-1M.vec'
 def loadVectors(filepath=MODEL_PATH, basepath=os.getcwd()) -> KeyedVectors:
     global kv, t_fuk_flag_undefined
-    if t_fuk_flag_undefined == True:
+    if type(kv) == type(None):
 
         targetpath = os.path.join(basepath , filepath)
         
         kv = KeyedVectors.load_word2vec_format(targetpath)
         logging.info('model load ' + targetpath)
-        t_fuk_flag_undefined = False
-    return kv
+    
+    return kv # type: ignore
 
 class Vectaizer:
     _kv:KeyedVectors 

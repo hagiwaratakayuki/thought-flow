@@ -2,6 +2,7 @@ from datetime import datetime
 from pydantic import BaseModel
 class TextOverView(BaseModel):
     id: str | int
+    title:str
     published:datetime
     body:str
     author:str

@@ -20,6 +20,7 @@ export type ClustresNext = string | null;
 export type LinkeTo = unknown[] | null;
 export type LinkedFrom = TextOverView[] | null;
 export type Id1 = string | number;
+export type Title2 = string;
 export type Published1 = string;
 export type Body1 = string;
 export type Author = string;
@@ -52,6 +53,7 @@ export interface ClusterOverView {
 }
 export interface TextOverView {
   id: Id1;
+  title: Title2;
   published: Published1;
   body: Body1;
   author: Author;

@@ -69,12 +69,17 @@ class Indexer:
 
     def _process_senti_total(self, vectorMap, vector, sentimentWordMap, sentimentRatio):
         sentimentVectors = SentinmentVector()
+        
         for sentiment, sentimentWords in sentimentWordMap.items():
+            
             total = sum(sentimentWords.values())
+            
             if total == 0:
-                continue 
+                 
+                 total = 1
             reguraised = {k:v / total for k, v in sentimentWords.items()}
             setattr(sentimentVectors, sentiment,  sum([vectorMap[k] * w for k, w in  reguraised.items()]))
+        
         total = sum(sentimentRatio.values())
         sentimentWeights = SentimentWeights()
         for sentiment, weight in sentimentRatio.items():

@@ -13,8 +13,8 @@ class Text(Model):
     weight:float
      
     def __init__(self, *args, **kwargs) -> None:
-        self._entity_options = { "exclude_from_indexes":("data","body", "title", )}
-        super(Text,self).__init__(*args, **kwargs)
+        
+        super(Text,self).__init__(entity_options= { "exclude_from_indexes":("data","body", "title", )}, *args, **kwargs)
     def setProperty(self, title, body,  data, linked_to:list[str], linked_count:int, published:datetime):
         self.body = body
         self.title = title
