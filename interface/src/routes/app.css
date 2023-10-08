@@ -8,6 +8,12 @@
     margin-top: 10%;
 }
 
+.flow .sidebar {
+    height: 80vh;
+    width: 100%;
+
+}
+
 .vertical-scroll {
     height: 100%;
     scrollbar-width: none;

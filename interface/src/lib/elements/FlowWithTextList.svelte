@@ -36,11 +36,14 @@
 {#if _isLoading == true}
   loading
 {:else if _isError == false}
+  <h3 class="mb-3">Flow</h3>
   <Row class="flow">
-    <Col class="h100 vertical-scroll" sm="4">
-      <TextList overViews={_overViews} isNextExist={_isNextExist} />
+    <Col class="h100" sm="2">
+      <div class="sidebar vertical-scroll me-4">
+        <TextList overViews={_overViews} isNextExist={_isNextExist} />
+      </div>
     </Col>
-    <Col class="h-100" sm="8">
+    <Col class="h-100 p-2 border border-primary-subtle rounded-1" sm="10">
       <Flow flow={_flow} />
     </Col>
   </Row>
