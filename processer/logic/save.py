@@ -98,8 +98,8 @@ def _save(datas:Iterable[tuple[np.ndarray, SentimentResult, Iterable[str], BaseD
             shape[1] = vector.shape[0] 
         index2vector[index] = vector
         index2sentiments[index] = sentimentResult
-        id_binary = '/'.join([data.title , data.body,  data.author, data.authorid]).encode('utf-8')
-        index2id[index] = hashlib.md5(id_binary).hexdigest()
+        
+        index2id[index] = data.id
         index2tag[index] = keywords
         index2published[index] = data.published
         index +=1  
