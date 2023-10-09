@@ -17,7 +17,9 @@ let _triangleGrphics = {};
 function getTriangleShape({ id = null, color = 0xFF0000, width = 10, height = 10 }) {
     if (id) {
         if (id in _triangleGrphics) {
-            return _triangleGrphics[id].clone()
+            const ret = _triangleGrphics[id].clone()
+            ret.pivot.set(width / 2, height)
+            return ret
         }
     }
     const graphics = new PIXI.Graphics()
@@ -629,13 +631,20 @@ export class FlowController {
             const directinX = toData.x > fromData.x ? 1 : -1
             const directinY = toData.y > fromData.y ? 1 : -1
 
+            const vecX = toData.x - fromData.x;
+            const vecY = toData.y - fromData.y;
+            const vecLength = (vecX ** 2 + vecY ** 2) ** 0.5
+            const toX = toData.x - vecX * 15 / vecLength;
+            const toY = toData.y - vecY * 15 / vecLength;
             //PIXI のメッシュの座標系は右上起点。回転は時計回り
             //メッシュの底、左右中央をpivotに。90度回転して接続して向きを線の角度に
 
-            const toX = toData.x - directinX * Math.cos(ang) * (toData.size + 15);
-            const toY = toData.y - directinY * Math.sin(ang) * (toData.size + 15);
-            const fromX = fromData.x + directinX * Math.cos(ang) * fromData.size
-            const fromY = fromData.y + directinX * Math.sin(ang) * fromData.size;
+
+
+
+            const fromX = fromData.x + vecX * fromData.size / vecLength
+            const fromY = fromData.y + vecY * fromData.size / vecLength
+
 
             const triangle = getTriangleShape({ id: 'santri' })
 
