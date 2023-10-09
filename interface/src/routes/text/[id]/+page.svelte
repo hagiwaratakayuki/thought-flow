@@ -4,6 +4,7 @@
 
   /** @type {import('./$types').PageData} */
   export let data;
+
   /**
    * @type {HTMLElement}
    */
@@ -79,7 +80,7 @@
       <p>{data.body}</p>
     </div>
     <div class="mb-5 bg-white" bind:this={linkTo}>
-      <h3 class="mb-3">This Paper Linked to That Paper</h3>
+      <h3 class="mb-3">This Paper Link to That Paper</h3>
       <FlatHolder overViews={data.link_to} isNextExist={false} />
     </div>
     <div class="mb-5 bg-white" bind:this={linkedFrom}>

@@ -11,7 +11,7 @@ from routing.return_models.cluster.overview import ClusterOverView
 from routing.return_models.cluster.overviews import ClusterOverViews
 from pydantic import BaseModel
 
-from typing import List
+from typing import List, Literal
 from db.text import Text
 from app.error_hundling.status_exception import StatusException
 from .router import get_routing_tuple
@@ -97,14 +97,14 @@ class TextFull(BaseModel):
     clustres_next: None | str = None
     link_to: list[TextOverView] | None = None
     linked_from: list[TextOverView] | None = None
-    linked_from_next: None | str = None
+    linked_from_next: Literal[False] | str = False
 
 
 
 @router.get('/entity_all',response_model=TextFull, response_model_exclude_none=True)
 def get_entity_all(id:int)-> TextFull:
     entity = Text.get(id=id)
-    print(list(entity['author']))
+    
     if  entity == None:
         raise StatusException(status=status.HTTP_400_BAD_REQUEST)
     link_to_ids = [{'id':link_to_id} for link_to_id in entity.get('link_to', [])]
@@ -120,7 +120,7 @@ def get_entity_all(id:int)-> TextFull:
     """
     linked_from_entities, linked_from_next = linked_text.fetch(text_id=id)
     linked_from = [TextOverView(id=e.id or e.key.name, **e) for e in linked_from_entities or []]#type: ignore 
-
+    
     return TextFull(title=entity["title"], 
                     body=entity["body"],
                     published=entity["published"],
