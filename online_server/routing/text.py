@@ -104,7 +104,7 @@ class TextFull(BaseModel):
 @router.get('/entity_all',response_model=TextFull, response_model_exclude_none=True)
 def get_entity_all(id:int)-> TextFull:
     entity = Text.get(id=id)
-    
+        
     if  entity == None:
         raise StatusException(status=status.HTTP_400_BAD_REQUEST)
     link_to_ids = [{'id':link_to_id} for link_to_id in entity.get('link_to', [])]

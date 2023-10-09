@@ -51,7 +51,11 @@ class Model:
                                data=dict(vector=vector.tolist(), sentiment=sentiment),
                                linked_to=linked_to, 
                                linked_count=linked_count, 
-                               published=data.published)
+                               published=data.published,
+                               author=data.author,
+                               author_id=data.author_id
+                               
+                            )
         self._chunk.append(textEntity)
         
         

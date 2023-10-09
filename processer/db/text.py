@@ -15,7 +15,7 @@ class Text(Model):
     def __init__(self, *args, **kwargs) -> None:
         
         super(Text,self).__init__(entity_options= { "exclude_from_indexes":("data","body", "title", )}, *args, **kwargs)
-    def setProperty(self, title, body,  data, linked_to:list[str], linked_count:int, published:datetime):
+    def setProperty(self, title, body,  data, linked_to:list[str], linked_count:int, published:datetime, author:str, author_id:str):
         self.body = body
         self.title = title
         self.link_to = linked_to
