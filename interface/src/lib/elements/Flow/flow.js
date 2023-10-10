@@ -68,6 +68,7 @@ export class FlowController {
          */
         this.app = new PIXI.Application({ antialias: true, backgroundAlpha: 0, resizeTo: container })
         this.app.stage.sortableChildren = true;
+        this._gridMap = {};
 
 
 
@@ -666,12 +667,13 @@ export class FlowController {
             const triangle = getTriangleShape({ id: 'santri' })
 
             triangle.position.set(toX, toY)
-            //@task 線と矢用のcontainerを追加。zindexを最低値に
-            //@task 線の太さとtransfromの関係について調べる
+
+
             //@task 衝突判定して衝突時は見えるようになるまで隠す
-            const triAng = (fromData.x < toData.x ? Math.PI / -2 : Math.PI / 2) - ang;
-            triangle.rotation -= triAng
-            const line = new PIXI.Graphics()
+
+            const triAng = ang - Math.PI / 2;
+            triangle.rotation -= triAng;
+            const line = new PIXI.Graphics();
 
 
 
