@@ -1,6 +1,6 @@
 from db.text import Text
 
-def fetch(text_id:str, cursor: str | None = None, limit:int = 10):
+def fetch(text_id:str | int, cursor: str | None = None, limit:int = 10):
     start_cursor = None
     if cursor != None:
         start_cursor = cursor.encode('utf-8')

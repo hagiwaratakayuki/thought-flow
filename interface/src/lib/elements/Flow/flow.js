@@ -114,6 +114,8 @@ export class FlowController {
         this._mousePosition = { x: 0, y: 0 };
         this._initContiners()
         this._initBackGroundScale();
+        this._colisionMap = {}
+
 
 
 
@@ -130,6 +132,13 @@ export class FlowController {
         this.app.stage.addChild(this._frontContainer);
         this._graphContainer = new PIXI.Container();
         this._graphContainer.zIndex = 10;
+        this._edgeContainer = new PIXI.Container();
+        this._edgeContainer.zIndex = 0;
+        this._graphContainer.addChild(this._edgeContainer);
+        this._vertexContainer = new PIXI.Container();
+        this._vertexContainer.zIndex = 10;
+        this._graphContainer.addChild(this._vertexContainer)
+        this._graphContainer.sortableChildren = true;
         this._frontContainer.addChild(this._graphContainer)
         this._scaleContainer = new PIXI.Container()
         this._scaleContainer.zIndex = 0;
@@ -595,17 +604,24 @@ export class FlowController {
 
         });
         const nodeGraphics = []
+
         for (const [node, yearMonthDate, weight] of nodeDatas) {
 
             const x = (((yearMonthDate.year - minYear) * 12 + (yearMonthDate.month - 1)) * 31 + yearMonthDate.date) * 20;
+
             const y = (1 - node.y) * this.app.screen.height / 2;
-            const size = (2 + 15 * weight) / 2;
+            const size = (5 + 15 * weight) / 2;
+            //const colisionKey = [yearMonthDate.year, year]
+
+            //@task 衝突判定して衝突時にはオーバーラップ表示で上書き
+            //@task ズームした時の大きさを変わらないように
             const graphic = new PIXI.Graphics()
             index[node.id] = Object.assign(index[node.id], { x, y, size })
             graphic.beginFill(0x6C9BD2)
             graphic.drawCircle(x, y, size);
-            graphic.endFill()
-            this._graphContainer.addChild(graphic)
+            graphic.endFill();
+
+            this._vertexContainer.addChild(graphic)
 
 
             nodeGraphics.push({ graphic, node })
@@ -626,10 +642,11 @@ export class FlowController {
                 continue;
             }
 
+
             const ang = Math.atan((toData.y - fromData.y) / (toData.x - fromData.x));
 
-            const directinX = toData.x > fromData.x ? 1 : -1
-            const directinY = toData.y > fromData.y ? 1 : -1
+
+
 
             const vecX = toData.x - fromData.x;
             const vecY = toData.y - fromData.y;
@@ -649,17 +666,21 @@ export class FlowController {
             const triangle = getTriangleShape({ id: 'santri' })
 
             triangle.position.set(toX, toY)
-
+            //@task 線と矢用のcontainerを追加。zindexを最低値に
+            //@task 線の太さとtransfromの関係について調べる
+            //@task 衝突判定して衝突時は見えるようになるまで隠す
             const triAng = (fromData.x < toData.x ? Math.PI / -2 : Math.PI / 2) - ang;
             triangle.rotation -= triAng
             const line = new PIXI.Graphics()
 
 
+
             line.lineStyle(this.options.edge.width || 2, this.options.edge.color || 0xdad7d7);
             line.moveTo(fromX, fromY)
             line.lineTo(toX, toY);
-            this._graphContainer.addChild(line)
-            this._graphContainer.addChild(triangle)
+
+            this._edgeContainer.addChild(line)
+            this._edgeContainer.addChild(triangle)
 
 
 

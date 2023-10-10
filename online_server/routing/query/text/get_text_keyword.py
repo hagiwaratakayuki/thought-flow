@@ -1,7 +1,7 @@
 from db.text_keyword import TextKeyword
 
 
-def fetch(text_id:str):
+def fetch(text_id:str | int):
     query = TextKeyword.query()
     query.add_filter("text_id", "=", text_id)
     query.projection = ["keyword"]
