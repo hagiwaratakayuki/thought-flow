@@ -2,7 +2,8 @@ import * as PIXI from "pixi.js";
 /**
  * @typedef {import("$lib/relay_types/flow").Flow} Nodes
 *  @typedef {import("$lib/relay_types/flow").Edges} Edges
-*  @typedef {import("$lib/relay_types/flow").FlowEntry} Node}
+*  @typedef {import("$lib/relay_types/flow").FlowEntry} Node
+   @typedef {{any?:Node}} NodeMap 
  */
 
 
@@ -69,6 +70,13 @@ export class FlowController {
         this.app = new PIXI.Application({ antialias: true, backgroundAlpha: 0, resizeTo: container })
         this.app.stage.sortableChildren = true;
         this._gridMap = {};
+        /**
+         * @type {{string?:{
+         *  isColide:boolean
+         *  node?:Node         
+         * }}}
+         */
+        this._interactiveGrid = {};
 
 
 
@@ -115,7 +123,10 @@ export class FlowController {
         this._mousePosition = { x: 0, y: 0 };
         this._initContiners()
         this._initBackGroundScale();
-        this._colisionMap = {}
+        /**
+         * @type {{string?:NodeMap}}
+         */
+        this._gridMap = {}
 
 
 
@@ -604,29 +615,142 @@ export class FlowController {
             return [nodes[index], yearMonthDates[index], (Math.tanh(x / 2) + 1) / 2]
 
         });
-        const nodeGraphics = []
+        /**
+         * @type {{string:PIXI.DisplayObject}}
+         */
+        // @ts-ignore
+        const nodeGraphics = {};
+        /**
+         * @type {{string?:{x:number, y:number}}}
+         */
+        // @ts-ignore
+        const colidedMap = {};
+
+
 
         for (const [node, yearMonthDate, weight] of nodeDatas) {
-
-            const x = (((yearMonthDate.year - minYear) * 12 + (yearMonthDate.month - 1)) * 31 + yearMonthDate.date) * 20;
+            //当たり判定と重複処理
+            const x = (((yearMonthDate.year - minYear) * 12 * 31 + (yearMonthDate.month - 1)) * 31 + yearMonthDate.date) * 20;
 
             const y = (1 - node.y) * this.app.screen.height / 2;
             const size = (5 + 15 * weight) / 2;
-            //const colisionKey = [yearMonthDate.year, year]
+            const gridKeys = [y + size, y - size].map(function (_y) {
+                return [yearMonthDate.year, yearMonthDate.month, yearMonthDate.date, Math.floor(_y / 20)].join('_')
+            })
+            //@todo 中心を基準に並び順を変更
+
+
+            /**
+             * @type {{nodes:NodeMap}}
+             */
+            let colisions;
+            let isColide = false;
+
+
+            for (let i = 0; i < gridKeys.length; i++) {
+                const gridKey = gridKeys[i];
+                //まだ無い場合
+                if (gridKey in this._gridMap === false) {
+                    //完全に衝突無し→初期化
+                    if (!colisions) {
+                        colisions = { nodes: {} };
+                        colisions.nodes[node.id] = node;
+                        this._gridMap[gridKey] = colisions;
+                        this._interactiveGrid[gridKey] = { colision: false, id: node.id }
+                        continue;
+                    }
+                    else {
+
+                        this._checkExistAndNotDeleted(colisions, nodeGraphics);
+
+
+                    }
+
+                    this._gridMap[gridKey] = colisions
+
+                    continue;
+
+
+                }
+                //以降は衝突した結果
+
+                isColide = true;
+
+                if (!colisions) {
+                    //つながる側なし + 衝突あり
+                    colisions = this._gridMap[gridKey];
+
+
+                    this._checkExistAndNotDeleted(colisions, nodeGraphics)
+
+                    colisions.nodes[node.id] = node
+                    colidedMap[gridKey] = { x, y, size }
+
+
+                    continue;
+                }
+                //つながる側あり
+                /**
+                * @type {{nodes:NodeMap}}
+                */
+                const _colisions = this._gridMap[gridKey]
+                Object.assign(colisions.nodes, _colisions.nodes);
+                this._gridMap[gridKey] = colisions;
+
+
+                if (this._checkExistAndNotDeleted(_colisions, nodeGraphics) === true) {
+                    delete this._interactiveGrid[gridKey]
+                }
+                if (this._checkExistAndNotDeleted(colisions, nodeGraphics) == true && i > 0) {
+                    const prevKey = gridKeys[i - 1];
+                    this._interactiveGrid[prevKey].isColide = true
+
+                }
+
+
+
+            }
+            if (isColide === true) {
+                continue;
+            }
+            const firstKey = gridKeys[0];
+            this._interactiveGrid[firstKey] = {
+                isColide: false,
+                node
+            }
+
+
 
             //@task 衝突判定して衝突時にはオーバーラップ表示で上書き
-            //@task ズームした時の大きさを変わらないように
+            //@task ズームした時の大きさを変わらないように(保留。年モード→月モード→日モード(チャットのみ?))
             const graphic = new PIXI.Graphics()
             index[node.id] = Object.assign(index[node.id], { x, y, size })
-            graphic.beginFill(0x6C9BD2)
+
+
+
+            graphic.beginFill("#0683c9ff")
             graphic.drawCircle(x, y, size);
             graphic.endFill();
 
             this._vertexContainer.addChild(graphic)
 
 
-            nodeGraphics.push({ graphic, node })
+            nodeGraphics[node.id] = graphic
         }
+        //オーバーラップしなかった分の表示
+
+        this._vertexContainer.addChild(...Array.from(Object.values(nodeGraphics)))
+
+        //オーバーラップ表示
+        for (const [gridKey, position] of Object.entries(colidedMap)) {
+            const graphic = new PIXI.Graphics()
+            graphic.beginFill("#c951062f")
+            graphic.drawCircle(position.x, position.y, 15);
+            graphic.endFill();
+            this._vertexContainer.addChild(graphic)
+        }
+
+
         /**
          * @typedef {{x:number,y:number, size:number}} nodePosition
          */
@@ -699,7 +823,25 @@ export class FlowController {
 
 
     }
+    /**
+     * 
+     * @param {{nodes:NodeMap}} target 
+     * @param {{string:any}} nodeGraphics 
+    
+     */
+    _checkExistAndNotDeleted(target, nodeGraphics) {
+        //含まれるのが一つならば、消していない既存のノードあり
+        const keys = Object.keys(target.nodes)
 
+        if (keys.length == 1) {
+
+            delete nodeGraphics[keys[0]];
+            return true
+
+
+        }
+        return false
+    }
 
 
 
