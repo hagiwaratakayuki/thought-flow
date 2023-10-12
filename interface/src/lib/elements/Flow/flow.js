@@ -3,8 +3,17 @@ import * as PIXI from "pixi.js";
  * @typedef {import("$lib/relay_types/flow").Flow} Nodes
 *  @typedef {import("$lib/relay_types/flow").Edges} Edges
 *  @typedef {import("$lib/relay_types/flow").FlowEntry} Node
-   @typedef {{any?:Node}} NodeMap 
- */
+   @typedef {Object.<string, Node>} NodeMap 
+   @typedef {{nodes:NodeMap}} Colisions
+   @typedef  {{        
+        isColide?:boolean
+        node?:Node,
+        grids:string[]
+   }} GridInfo
+   
+
+         
+ **/
 
 
 let _triangleGrphics = {};
@@ -71,10 +80,7 @@ export class FlowController {
         this.app.stage.sortableChildren = true;
         this._gridMap = {};
         /**
-         * @type {{string?:{
-         *  isColide:boolean
-         *  node?:Node         
-         * }}}
+         * @type {Object.<string, GridInfo>}
          */
         this._interactiveGrid = {};
 
@@ -124,7 +130,7 @@ export class FlowController {
         this._initContiners()
         this._initBackGroundScale();
         /**
-         * @type {{string?:NodeMap}}
+         * @type {{string?:Colisions}}
          */
         this._gridMap = {}
 
@@ -575,6 +581,10 @@ export class FlowController {
     addNode(nodes, edges) {
         let total = 0;
         const weights = [];
+        /**
+         * @typedef {{x:number,y:number, size?:number, isColide?:boolean, gridKey?:string}} nodePosition
+         * @type {Object.<string, nodePosition>}        
+         * */
         const index = {};
         let maxYear = 0;
         let minYear = Infinity;
@@ -634,21 +644,29 @@ export class FlowController {
 
             const y = (1 - node.y) * this.app.screen.height / 2;
             const size = (5 + 15 * weight) / 2;
-            const gridKeys = [y + size, y - size].map(function (_y) {
+
+            const exist = {};
+            const grids = [y + size, y - size].map(function (_y) {
+                return String(Math.floor(_y / 20))
+            }).filter(function (_y) {
+                const isNotUnique = _y in exist === false;
+                exist[_y] = true;
+                return isNotUnique;
+            }).map(function (_y) {
                 return [yearMonthDate.year, yearMonthDate.month, yearMonthDate.date, Math.floor(_y / 20)].join('_')
             })
             //@todo 中心を基準に並び順を変更
 
 
             /**
-             * @type {{nodes:NodeMap}}
+             * @type {Colisions}
              */
             let colisions;
             let isColide = false;
 
 
-            for (let i = 0; i < gridKeys.length; i++) {
-                const gridKey = gridKeys[i];
+            for (let i = 0; i < grids.length; i++) {
+                const gridKey = grids[i];
                 //まだ無い場合
                 if (gridKey in this._gridMap === false) {
                     //完全に衝突無し→初期化
@@ -684,21 +702,23 @@ export class FlowController {
 
                     continue;
                 }
-                console.log()
+
                 //つながる側あり
                 /**
-                * @type {{nodes:NodeMap}}
+                * @type {Colisions}
                 */
                 const _colisions = this._gridMap[gridKey]
+                if (this._checkExistAndNotDeleted(_colisions, nodeGraphics) === true) {
+                    delete this._interactiveGrid[gridKey]
+                }
                 Object.assign(colisions.nodes, _colisions.nodes);
                 this._gridMap[gridKey] = colisions;
 
 
-                if (this._checkExistAndNotDeleted(_colisions, nodeGraphics) === true) {
-                    delete this._interactiveGrid[gridKey]
-                }
+
                 if (this._checkExistAndNotDeleted(colisions, nodeGraphics) == true && i > 0) {
-                    const prevKey = gridKeys[i - 1];
+                    const prevKey = grids[i - 1];
+
                     this._interactiveGrid[prevKey].isColide = true
 
                 }
@@ -709,11 +729,19 @@ export class FlowController {
             if (isColide === true) {
                 continue;
             }
-            const firstKey = gridKeys[0];
-            this._interactiveGrid[firstKey] = {
+            /**
+             * @type {GridInfo}
+             */
+            const gridInfo = {
                 isColide: false,
-                node
+                node,
+                grids: grids
             }
+            for (const grid of grids) {
+
+                this._interactiveGrid[grid] = gridInfo
+            }
+
 
 
 
@@ -738,6 +766,19 @@ export class FlowController {
 
         //オーバーラップ表示
         for (const [gridKey, position] of Object.entries(colidedMap)) {
+            /**
+             * @type {Colisions}
+             */
+            const colisions = this._gridMap[gridKey];
+            /**
+             * @type {nodePosition}
+             */
+            const indexPosition = { x: position.x, y: position.y, isColide: true, gridKey }
+            for (const _node of Object.values(colisions.nodes)) {
+
+
+                index[_node.id] = indexPosition
+            }
             const graphic = new PIXI.Graphics()
             graphic.beginFill("#c951062f")
             graphic.drawCircle(position.x, position.y, 15);
@@ -746,9 +787,7 @@ export class FlowController {
         }
 
 
-        /**
-         * @typedef {{x:number,y:number, size:number}} nodePosition
-         */
+
         for (const edge of edges) {
             /**
              * @type {nodePosition}
@@ -762,6 +801,12 @@ export class FlowController {
                 continue;
             }
 
+            if (fromData == toData) {
+                continue;
+            }
+            /**if (edge.from in nodeGraphics === false || edge.to in nodeGraphics === false) {
+                console.log(fromData, toData);
+            }**/
 
             const ang = Math.atan((toData.y - fromData.y) / (toData.x - fromData.x));
 
@@ -820,7 +865,7 @@ export class FlowController {
     }
     /**
      * 
-     * @param {{nodes:NodeMap}} target 
+     * @param {Colisions} target 
      * @param {{string:any}} nodeGraphics 
     
      */
