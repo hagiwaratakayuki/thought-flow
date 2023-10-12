@@ -659,13 +659,8 @@ export class FlowController {
                         this._interactiveGrid[gridKey] = { colision: false, id: node.id }
                         continue;
                     }
-                    else {
 
-                        this._checkExistAndNotDeleted(colisions, nodeGraphics);
-
-
-                    }
-
+                    colisions.nodes[node.id] = node
                     this._gridMap[gridKey] = colisions
 
                     continue;
@@ -689,6 +684,7 @@ export class FlowController {
 
                     continue;
                 }
+                console.log()
                 //つながる側あり
                 /**
                 * @type {{nodes:NodeMap}}
@@ -721,7 +717,6 @@ export class FlowController {
 
 
 
-            //@task 衝突判定して衝突時にはオーバーラップ表示で上書き
             //@task ズームした時の大きさを変わらないように(保留。年モード→月モード→日モード(チャットのみ?))
             const graphic = new PIXI.Graphics()
             index[node.id] = Object.assign(index[node.id], { x, y, size })
@@ -732,7 +727,7 @@ export class FlowController {
             graphic.drawCircle(x, y, size);
             graphic.endFill();
 
-            this._vertexContainer.addChild(graphic)
+
 
 
             nodeGraphics[node.id] = graphic
