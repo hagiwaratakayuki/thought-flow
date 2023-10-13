@@ -104,6 +104,7 @@ export class FlowController {
         container.addEventListener('mouseup', onMouseUp)
         this._scaleCache = {}
 
+
         this._domContainer = container;
 
 
@@ -128,10 +129,11 @@ export class FlowController {
         this._mousePosition = { x: 0, y: 0 };
         this._initContiners()
         this._initBackGroundScale();
+
         /**
-         * @type {{string?:Colisions}}
+         * @type {Object.<string, Object.<string, true>>}
          */
-        this._gridMap = {}
+        this._edgeMaps = {}
 
 
 
@@ -723,7 +725,21 @@ export class FlowController {
             if (isColide === true) {
                 continue;
             }
-
+            let isEdgeExist = false;
+            let isReverseEdge = false;
+            for (const fromGrid in fromData.grids) {
+                let edgeMap = this._edgeMaps[fromGrid] || {};
+                for (const toGrid in toData.grids) {
+                    isEdgeExist = isEdgeExist || edgeMap[toGrid] == true;
+                    isReverseEdge = isReverseEdge || (this._edgeMaps[toGrid] || {})[fromGrid] == true;
+                    isEdgeExist = isEdgeExist || isReverseEdge
+                    edgeMap[toGrid] = true;
+                }
+                this._edgeMaps[fromGrid] = edgeMap
+            }
+            if (isEdgeExist === true && isReverseEdge === false) {
+                continue;
+            }
 
 
 
@@ -732,9 +748,9 @@ export class FlowController {
             const vecX = toData.x - fromData.x;
             const vecY = toData.y - fromData.y;
             const vecLength = (vecX ** 2 + vecY ** 2) ** 0.5
-            const toX = toData.x - vecX * 15 / vecLength;
-            const toY = toData.y - vecY * 15 / vecLength;
-            const antiLock = toData.x === fromData.x && toData.y > fromData.y ? -1 : 1
+            const toX = toData.x - vecX * 40 / vecLength;
+            const toY = toData.y - vecY * 40 / vecLength;
+            const antiLock = toData.y > fromData.y ? -1 : 1
             const ang = antiLock * Math.acos((toData.x - fromData.x) / vecLength);
 
             //PIXI のメッシュの座標系は右上起点。回転は時計回り
@@ -753,20 +769,24 @@ export class FlowController {
             triangle.position.set(toX, toY)
 
 
-            //@task 衝突判定して衝突時は見えるようになるまで隠す
 
             const triAng = ang - Math.PI / 2;
             triangle.rotation -= triAng;
             const line = new PIXI.Graphics();
-
-
-
-            line.lineStyle(this.options.edge.width || 2, this.options.edge.color || 0xdad7d7);
-            line.moveTo(fromX, fromY)
-            line.lineTo(toX, toY);
-
-            this._edgeContainer.addChild(line)
             this._edgeContainer.addChild(triangle)
+
+            if (isEdgeExist === false) {
+                line.lineStyle(this.options.edge.width || 2, this.options.edge.color || 0xdad7d7);
+                line.moveTo(fromX, fromY)
+                line.lineTo(toX, toY);
+                this._edgeContainer.addChild(line)
+
+            }
+
+
+
+
+
 
 
 
