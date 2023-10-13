@@ -6,9 +6,8 @@ import * as PIXI from "pixi.js";
    @typedef {Object.<string, Node>} NodeMap 
    @typedef {{nodes:NodeMap}} Colisions
    @typedef  {{        
-        isColide?:boolean
-        node?:Node,
-        grids:string[]
+        nodes:Node[],
+        isOverwraped: boolean
    }} GridInfo
    
 
@@ -582,7 +581,7 @@ export class FlowController {
         let total = 0;
         const weights = [];
         /**
-         * @typedef {{x:number,y:number, size?:number, isColide?:boolean, gridKey?:string}} nodePosition
+         * @typedef {Node & {x?:number,y?:number, size?:number, grids?:Object.<string, true>}} nodePosition
          * @type {Object.<string, nodePosition>}        
          * */
         const index = {};
@@ -595,7 +594,7 @@ export class FlowController {
         const pt = /\d+/g
 
         for (const node of nodes) {
-            index[node.id] = { node };
+            index[node.id] = node;
             total += node.weight;
             weights.push(node.weight)
 
@@ -626,165 +625,78 @@ export class FlowController {
 
         });
         /**
-         * @type {{string:PIXI.DisplayObject}}
+         * @type {Object.<string,PIXI.DisplayObject>}
          */
-        // @ts-ignore
+
         const nodeGraphics = {};
-        /**
-         * @type {{string?:{x:number, y:number}}}
-         */
-        // @ts-ignore
-        const colidedMap = {};
+
 
 
 
         for (const [node, yearMonthDate, weight] of nodeDatas) {
+
             //当たり判定と重複処理
             const x = (((yearMonthDate.year - minYear) * 12 * 31 + (yearMonthDate.month - 1)) * 31 + yearMonthDate.date) * 20;
 
             const y = (1 - node.y) * this.app.screen.height / 2;
             const size = (5 + 15 * weight) / 2;
 
-            const exist = {};
-            const grids = [y + size, y - size].map(function (_y) {
-                return String(Math.floor(_y / 20))
-            }).filter(function (_y) {
-                const isNotUnique = _y in exist === false;
-                exist[_y] = true;
-                return isNotUnique;
-            }).map(function (_y) {
-                return [yearMonthDate.year, yearMonthDate.month, yearMonthDate.date, Math.floor(_y / 20)].join('_')
-            })
+
+
+
+
+            const end = y + size;
+            let _y = y - size;
+            /**
+             * @type {Object.<string, true>}
+             */
+            const grids = {};
+            while (_y < end) {
+                const grid = [yearMonthDate.year, yearMonthDate.month, yearMonthDate.date, Math.floor(_y / 5)].join('_');
+
+                _y += 5;
+                grids[grid] = true
+
+
+                const interactiveData = this._interactiveGrid[grid] || {
+                    nodes: [],
+                    isOverwraped: false
+
+
+                }
+                interactiveData.nodes.push(node)
+                if (interactiveData.isOverwraped === false) {
+                    interactiveData.isOverwraped = grid in this._interactiveGrid;
+                }
+                this._interactiveGrid[grid] = interactiveData
+
+            }
+            index[node.id] = Object.assign(node, { x, y, size, grids })
+
             //@todo 中心を基準に並び順を変更
-
-
-            /**
-             * @type {Colisions}
-             */
-            let colisions;
-            let isColide = false;
-
-
-            for (let i = 0; i < grids.length; i++) {
-                const gridKey = grids[i];
-                //まだ無い場合
-                if (gridKey in this._gridMap === false) {
-                    //完全に衝突無し→初期化
-                    if (!colisions) {
-                        colisions = { nodes: {} };
-                        colisions.nodes[node.id] = node;
-                        this._gridMap[gridKey] = colisions;
-                        this._interactiveGrid[gridKey] = { colision: false, id: node.id }
-                        continue;
-                    }
-
-                    colisions.nodes[node.id] = node
-                    this._gridMap[gridKey] = colisions
-
-                    continue;
-
-
-                }
-                //以降は衝突した結果
-
-                isColide = true;
-
-                if (!colisions) {
-                    //つながる側なし + 衝突あり
-                    colisions = this._gridMap[gridKey];
-
-
-                    this._checkExistAndNotDeleted(colisions, nodeGraphics)
-
-                    colisions.nodes[node.id] = node
-                    colidedMap[gridKey] = { x, y, size }
-
-
-                    continue;
-                }
-
-                //つながる側あり
-                /**
-                * @type {Colisions}
-                */
-                const _colisions = this._gridMap[gridKey]
-                if (this._checkExistAndNotDeleted(_colisions, nodeGraphics) === true) {
-                    delete this._interactiveGrid[gridKey]
-                }
-                Object.assign(colisions.nodes, _colisions.nodes);
-                this._gridMap[gridKey] = colisions;
-
-
-
-                if (this._checkExistAndNotDeleted(colisions, nodeGraphics) == true && i > 0) {
-                    const prevKey = grids[i - 1];
-
-                    this._interactiveGrid[prevKey].isColide = true
-
-                }
-
-
-
-            }
-            if (isColide === true) {
-                continue;
-            }
-            /**
-             * @type {GridInfo}
-             */
-            const gridInfo = {
-                isColide: false,
-                node,
-                grids: grids
-            }
-            for (const grid of grids) {
-
-                this._interactiveGrid[grid] = gridInfo
-            }
-
-
-
-
             //@task ズームした時の大きさを変わらないように(保留。年モード→月モード→日モード(チャットのみ?))
             const graphic = new PIXI.Graphics()
-            index[node.id] = Object.assign(index[node.id], { x, y, size })
-
 
 
             graphic.beginFill("#0683c9ff")
             graphic.drawCircle(x, y, size);
             graphic.endFill();
-
-
-
-
             nodeGraphics[node.id] = graphic
+
+
+
+
+
         }
-        //オーバーラップしなかった分の表示
 
-        this._vertexContainer.addChild(...Array.from(Object.values(nodeGraphics)))
+        const nodeGraphicsArr = Array.from(Object.values(nodeGraphics))
 
-        //オーバーラップ表示
-        for (const [gridKey, position] of Object.entries(colidedMap)) {
-            /**
-             * @type {Colisions}
-             */
-            const colisions = this._gridMap[gridKey];
-            /**
-             * @type {nodePosition}
-             */
-            const indexPosition = { x: position.x, y: position.y, isColide: true, gridKey }
-            for (const _node of Object.values(colisions.nodes)) {
+        if (nodeGraphicsArr.length > 0) {
+            this._vertexContainer.addChild(...Array.from(Object.values(nodeGraphics)))
 
-
-                index[_node.id] = indexPosition
-            }
-            const graphic = new PIXI.Graphics()
-            graphic.beginFill("#c951062f")
-            graphic.drawCircle(position.x, position.y, 15);
-            graphic.endFill();
-            this._vertexContainer.addChild(graphic)
         }
+
+
 
 
 
@@ -801,14 +713,18 @@ export class FlowController {
                 continue;
             }
 
-            if (fromData == toData) {
+            let isColide = false;
+            for (const grid of Object.keys(fromData.grids)) {
+                if (toData.grids[grid] === true) {
+                    isColide = true;
+                    break;
+                }
+            }
+            if (isColide === true) {
                 continue;
             }
-            /**if (edge.from in nodeGraphics === false || edge.to in nodeGraphics === false) {
-                console.log(fromData, toData);
-            }**/
 
-            const ang = Math.atan((toData.y - fromData.y) / (toData.x - fromData.x));
+
 
 
 
@@ -818,6 +734,9 @@ export class FlowController {
             const vecLength = (vecX ** 2 + vecY ** 2) ** 0.5
             const toX = toData.x - vecX * 15 / vecLength;
             const toY = toData.y - vecY * 15 / vecLength;
+            const antiLock = toData.x === fromData.x && toData.y > fromData.y ? -1 : 1
+            const ang = antiLock * Math.acos((toData.x - fromData.x) / vecLength);
+
             //PIXI のメッシュの座標系は右上起点。回転は時計回り
             //メッシュの底、左右中央をpivotに。90度回転して接続して向きを線の角度に
 
@@ -826,6 +745,7 @@ export class FlowController {
 
             const fromX = fromData.x + vecX * fromData.size / vecLength
             const fromY = fromData.y + vecY * fromData.size / vecLength
+
 
 
             const triangle = getTriangleShape({ id: 'santri' })

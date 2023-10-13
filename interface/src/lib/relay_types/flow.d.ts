@@ -11,10 +11,10 @@ export type FlowEntry = {
     id: any,
     y: number,
     weight: number,
-    published: string
+    published: string,
 
 
-} & AnyData
+}
 
 export type Flow = FlowEntry[]
 
