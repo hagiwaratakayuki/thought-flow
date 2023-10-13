@@ -153,6 +153,13 @@ export class FlowController {
         this._graphContainer.zIndex = 10;
         this._edgeContainer = new PIXI.Container();
         this._edgeContainer.zIndex = 0;
+        this._edgeLineContainer = new PIXI.Container()
+        this._edgeLineContainer.zIndex = 0;
+        this._edgeContainer.addChild(this._edgeLineContainer)
+        this._edgeArrowContainer = new PIXI.Container()
+        this._edgeArrowContainer.zIndex = 10;
+        this._edgeContainer.addChild(this._edgeArrowContainer)
+
         this._graphContainer.addChild(this._edgeContainer);
         this._vertexContainer = new PIXI.Container();
         this._vertexContainer.zIndex = 10;
@@ -700,7 +707,8 @@ export class FlowController {
 
 
 
-
+        const edgeLines = [];
+        const edgeArrows = [];
 
         for (const edge of edges) {
             /**
@@ -748,8 +756,9 @@ export class FlowController {
             const vecX = toData.x - fromData.x;
             const vecY = toData.y - fromData.y;
             const vecLength = (vecX ** 2 + vecY ** 2) ** 0.5
-            const toX = toData.x - vecX * 40 / vecLength;
-            const toY = toData.y - vecY * 40 / vecLength;
+            const toGap = toData.size + 15
+            const toX = toData.x - vecX * toGap / vecLength;
+            const toY = toData.y - vecY * toGap / vecLength;
             const antiLock = toData.y > fromData.y ? -1 : 1
             const ang = antiLock * Math.acos((toData.x - fromData.x) / vecLength);
 
@@ -758,9 +767,9 @@ export class FlowController {
 
 
 
-
-            const fromX = fromData.x + vecX * fromData.size / vecLength
-            const fromY = fromData.y + vecY * fromData.size / vecLength
+            const fromGap = fromData.size + 5
+            const fromX = fromData.x + vecX * fromGap / vecLength
+            const fromY = fromData.y + vecY * fromGap / vecLength
 
 
 
@@ -768,20 +777,22 @@ export class FlowController {
 
             triangle.position.set(toX, toY)
 
-
-
-            const triAng = ang - Math.PI / 2;
-            triangle.rotation -= triAng;
-            const line = new PIXI.Graphics();
-            this._edgeContainer.addChild(triangle)
-
             if (isEdgeExist === false) {
+                const line = new PIXI.Graphics();
                 line.lineStyle(this.options.edge.width || 2, this.options.edge.color || 0xdad7d7);
                 line.moveTo(fromX, fromY)
                 line.lineTo(toX, toY);
-                this._edgeContainer.addChild(line)
+                edgeLines.push(line);
+
 
             }
+
+            const triAng = ang - Math.PI / 2;
+            triangle.rotation -= triAng;
+            edgeArrows.push(triangle)
+
+
+
 
 
 
@@ -793,7 +804,8 @@ export class FlowController {
 
 
         }
-
+        this._edgeLineContainer.addChild(...edgeLines)
+        this._edgeArrowContainer.addChild(...edgeArrows)
         return { nodeGraphics, yearDiff, minYear };
 
 

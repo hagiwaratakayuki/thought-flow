@@ -1,8 +1,8 @@
-<!-- Indices written at 金, 13 10月 2023 20:31:29 JST -->
+<!-- Indices written at 金, 13 10月 2023 20:39:37 JST -->
 
 <datastore-indexes autoGenerate="true">
 
-    <!-- Used 46 times in query history -->
+    <!-- Used 48 times in query history -->
     <datastore-index kind="TextKeyword" ancestor="false" source="auto">
         <property name="text_id" direction="asc"/>
         <property name="keyword" direction="asc"/>
@@ -15,7 +15,7 @@
         <property name="cluster_id" direction="asc"/>
     </datastore-index>
 
-    <!-- Used 43 times in query history -->
+    <!-- Used 45 times in query history -->
     <datastore-index kind="Text" ancestor="false" source="auto">
         <property name="link_to" direction="asc"/>
         <property name="linked_count" direction="asc"/>
