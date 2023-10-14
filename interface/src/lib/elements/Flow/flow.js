@@ -321,33 +321,31 @@ export class FlowController {
          * @type {PIXI.Graphics[]}
          */
         const keeps = [];
+        /**
+         * @type {PIXI.Graphics[]}
+         */
         const circleArounds = [];
         const isLeft = this._transforms.deltaX < 0;
         const screenRight = this.app.screen.width - this.padding;
-        const scaleX = this._transforms.scaleY;
+        const scaleX = this._transforms.scaleX;
 
         const padding = this.padding
 
 
         let count = 0;
         const step = this.dayStep * this._transforms.scaleX
+
         const adjest = this._transforms.x % step
         for (const dateScale of this._dateScales) {
             const x = count * step + adjest + padding
             count++;
             dateScale.position.set(x, dateScale.position.y)
-            if (x < this.padding) {
-                dateScale.visible = false
-                if (isLeft === true) {
-                    circleArounds.push(dateScale)
-                }
-                continue;
-            }
-            if (x > screenRight) {
+            if (x < this.padding || x > screenRight) {
+
                 dateScale.visible = false;
-                if (isLeft === false) {
-                    circleArounds.push(dateScale)
-                }
+
+                circleArounds.push(dateScale)
+
                 continue;
 
             }
@@ -356,6 +354,20 @@ export class FlowController {
 
         }
         let startX;
+
+        while (circleArounds.length > 0 && (keeps.length === 0 || keeps[keeps.length - 1].x < screenRight)) {
+
+            const x = keeps.length * step + adjest + padding
+            const circleAround = circleArounds.shift()
+            circleAround.x = x;
+            circleAround.visible = true;
+
+
+            keeps.push(circleAround);
+
+        }
+
+
         if (keeps.length === 0) {
             startX = padding;
         }
@@ -367,11 +379,13 @@ export class FlowController {
             }
 
         }
+
         count = 1;
         const directionX = isLeft === true ? 1 : -1;
 
         for (const circleAround of circleArounds) {
             const x = startX + this.dayStep * scaleX * count * directionX;
+
             circleAround.position.set(x, circleAround.position.y);
             count += 1;
         }
@@ -790,15 +804,6 @@ export class FlowController {
             const triAng = ang - Math.PI / 2;
             triangle.rotation -= triAng;
             edgeArrows.push(triangle)
-
-
-
-
-
-
-
-
-
 
 
 

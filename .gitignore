@@ -8,4 +8,5 @@ nasa_sti
 
 # C extensions
 *.so
-
+/devdatas/**
+!/devdatas/**/.gitkeep
