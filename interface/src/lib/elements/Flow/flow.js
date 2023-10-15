@@ -102,6 +102,9 @@ export class FlowController {
         container.addEventListener('mousemove', onMouseMove)
         const onMouseUp = this.onMouseUp.bind(this)
         container.addEventListener('mouseup', onMouseUp)
+        const onMouseOut = this.onMouseOut.bind(this);
+        container.addEventListener('mouseout', onMouseOut)
+        this._initEvent()
         this._scaleCache = {}
 
 
@@ -144,6 +147,33 @@ export class FlowController {
 
 
 
+    }
+    /**
+     * @param {"node.click"} event
+     * @param {Function} callback
+     */
+    _on(event, callback) {
+        const callbacks = this._events || [];
+        callbacks.push(callback);
+        this._events[event] = callbacks
+
+    }
+    /**
+     * @param {"node.click"} event
+     * @param {any} message
+     */
+    _emit(event, message) {
+        const callbacks = this._events[event] || [];
+        for (const callback of callbacks) {
+            callback(message)
+        }
+
+
+    }
+
+
+    _initEvent() {
+        this._events = {}
     }
     _initContiners() {
         this._frontContainer = new PIXI.Container()
@@ -249,7 +279,30 @@ export class FlowController {
     onMouseDown(event) {
         this._isOnDrag = true
         this._mousePosition = { x: event.clientX, y: event.clientY }
+        this._emitNodeClick(event)
 
+
+
+    }
+    /**
+     * @param {Function} callback
+     */
+    onNodeClick(callback) {
+        this._on('node.click', callback)
+    }
+    /**
+     * @param {MouseEvent} event
+     */
+    _emitNodeClick(event) {
+        const x = (event.clientX - this._domContainer.clientLeft + this._transforms.x) * this._transforms.scaleX
+        const y = (event.clientY - this._domContainer.clientTop + this._transforms.y) * this._transforms.scaleY;
+        const grid = this._getGridFromAxis(x, y);
+        if (grid in this._interactiveGrid) {
+            this._emit('node.click')
+        }
+    }
+    onMouseOut() {
+        this._isOnDrag = false
     }
     onMouseUp() {
         this._isOnDrag = false;
@@ -632,6 +685,9 @@ export class FlowController {
             yearMonthDates.push({ year, month, date })
 
         }
+        if (!this._minYear) {
+            this._minYear = minYear
+        }
         const yearDiff = maxYear - minYear || 1;
         const avg = total / nodes.length
         const sigma = Math.sqrt(weights.reduce(function (prev, cur) {
@@ -821,25 +877,30 @@ export class FlowController {
 
     }
     /**
-     * 
-     * @param {Colisions} target 
-     * @param {{string:any}} nodeGraphics 
-    
+     * @param {number} x
+     * @param {number} y
      */
-    _checkExistAndNotDeleted(target, nodeGraphics) {
-        //含まれるのが一つならば、消していない既存のノードあり
-        const keys = Object.keys(target.nodes)
+    _getGridFromAxis(x, y) {
+        const baseX = x / 20;
+        const yearDiff = 12 * 31;
+        const monthDiff = 31;
+        const year = Math.floor(baseX / yearDiff) + this._minYear;
+        const month = Math.floor(Math.abs(baseX % yearDiff) / 31);
+        const date = Math.abs(baseX % yearDiff) % monthDiff;
 
-        if (keys.length == 1) {
-
-            delete nodeGraphics[keys[0]];
-            return true
+        return this._getGrid(year, month, date, y);
 
 
-        }
-        return false
     }
-
+    /**
+     * @param {number} year
+     * @param {number} month
+     * @param {number} date
+     * @param {number} y
+     */
+    _getGrid(year, month, date, y) {
+        return [year, month, date, Math.floor(y / 5)].join('_');
+    }
 
 
 }
