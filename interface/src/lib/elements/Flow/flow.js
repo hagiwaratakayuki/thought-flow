@@ -107,7 +107,10 @@ export class FlowController {
         this._initEvent()
         this._scaleCache = {}
 
-
+        this._offset = {
+            x: container.parentElement.offsetLeft,
+            y: container.parentElement.offsetTop
+        }
         this._domContainer = container;
 
 
@@ -294,11 +297,15 @@ export class FlowController {
      * @param {MouseEvent} event
      */
     _emitNodeClick(event) {
-        const x = (event.clientX - this._domContainer.clientLeft + this._transforms.x) * this._transforms.scaleX
-        const y = (event.clientY - this._domContainer.clientTop + this._transforms.y) * this._transforms.scaleY;
+
+        const x = (event.clientX - this._offset.x - this._transforms.x) / this._transforms.scaleX
+        const y = (event.clientY - this._offset.y - this._transforms.y) / this._transforms.scaleY;
+
         const grid = this._getGridFromAxis(x, y);
+
         if (grid in this._interactiveGrid) {
-            this._emit('node.click')
+
+            this._emit('node.click', this._interactiveGrid[grid])
         }
     }
     onMouseOut() {
@@ -718,6 +725,7 @@ export class FlowController {
             const x = (((yearMonthDate.year - minYear) * 12 * 31 + (yearMonthDate.month - 1)) * 31 + yearMonthDate.date) * 20;
 
             const y = (1 - node.y) * this.app.screen.height / 2;
+
             const size = (5 + 15 * weight) / 2;
 
 
@@ -885,8 +893,9 @@ export class FlowController {
         const yearDiff = 12 * 31;
         const monthDiff = 31;
         const year = Math.floor(baseX / yearDiff) + this._minYear;
-        const month = Math.floor(Math.abs(baseX % yearDiff) / 31);
-        const date = Math.abs(baseX % yearDiff) % monthDiff;
+        const month = Math.ceil(Math.abs(baseX % yearDiff) / 31);
+        const date = Math.ceil(Math.abs(baseX % yearDiff) % monthDiff);
+
 
         return this._getGrid(year, month, date, y);
 
