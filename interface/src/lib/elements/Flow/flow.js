@@ -300,7 +300,7 @@ export class FlowController {
     _emitNodeClick(event) {
 
         const x = (event.clientX - this._offset.x - this._transforms.x) / this._transforms.scaleX
-        const y = (event.clientY - this._offset.y - this._graphContainerAdjast.y) / this._transforms.scaleY;
+        const y = (event.clientY - this._offset.y - this._transforms.y) / this._transforms.scaleY;
 
         const grid = this._getGridFromAxis(x, y);
 
@@ -341,11 +341,8 @@ export class FlowController {
 
         //this._domContainer.removeEventListener('wheel', this._wheelHandler)
         this._domContainer = null;
-        this._initParams()
 
-    }
-    _initParams() {
-        this._graphContainerAdjast = { y: 0 }
+
     }
     onTick() {
         if (this._isTransformed === false) {
@@ -358,7 +355,7 @@ export class FlowController {
 
         this._graphContainer.position.set(this._transforms.x, this._transforms.y)
         this._scaleContainer.position.set(this._transforms.x, this._scaleContainer.position.y)
-        this._graphContainerAdjast.y = this._transforms.y + yAdjast;
+
         /**
          * @type {{scale:PIXI.Container; year:number; month:number;}[]}
          */
