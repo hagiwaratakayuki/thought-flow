@@ -82,6 +82,7 @@ export class FlowController {
          * @type {Object.<string, GridInfo>}
          */
         this._interactiveGrid = {};
+        this._initParams();
 
 
 
@@ -299,7 +300,7 @@ export class FlowController {
     _emitNodeClick(event) {
 
         const x = (event.clientX - this._offset.x - this._transforms.x) / this._transforms.scaleX
-        const y = (event.clientY - this._offset.y - this._transforms.y) / this._transforms.scaleY;
+        const y = (event.clientY - this._offset.y - this._graphContainerAdjast.y) / this._transforms.scaleY;
 
         const grid = this._getGridFromAxis(x, y);
 
@@ -340,20 +341,24 @@ export class FlowController {
 
         //this._domContainer.removeEventListener('wheel', this._wheelHandler)
         this._domContainer = null;
+        this._initParams()
 
+    }
+    _initParams() {
+        this._graphContainerAdjast = { y: 0 }
     }
     onTick() {
         if (this._isTransformed === false) {
             return
         }
 
-        const yPosition = (this.app.screen.height / 2) * (1 - this._transforms.scaleY);
-        this._graphContainer.setTransform(0, yPosition, this._transforms.scaleX, this._transforms.scaleY)
+        const yAdjast = (this.app.screen.height / 2) * (1 - this._transforms.scaleY);
+        this._graphContainer.setTransform(0, yAdjast, this._transforms.scaleX, this._transforms.scaleY)
         this._isTransformed = false;
 
         this._graphContainer.position.set(this._transforms.x, this._transforms.y)
         this._scaleContainer.position.set(this._transforms.x, this._scaleContainer.position.y)
-
+        this._graphContainerAdjast.y = this._transforms.y + yAdjast;
         /**
          * @type {{scale:PIXI.Container; year:number; month:number;}[]}
          */
