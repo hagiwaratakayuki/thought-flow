@@ -10,6 +10,7 @@ import * as PIXI from "pixi.js";
         isOverwraped: boolean
    }} GridInfo
    @typedef {"node.click" | "node.over"} MouseEventName
+   @typedef {Node & {x?:number,y?:number, size?:number, grids?:Object.<string, true>}} nodePosition
 
          
  **/
@@ -66,6 +67,7 @@ const defaultOptions = {
 }
 
 export class FlowController {
+
     /**
      * 
      * @param {HTMLElement} container
@@ -130,6 +132,7 @@ export class FlowController {
 
 
 
+
         this.centerHeight = container.clientHeight / 2
         this.dayStep = 30;
         this.dateDysplayLimit = 0.5;
@@ -138,6 +141,12 @@ export class FlowController {
         this._mousePosition = { x: 0, y: 0 };
         this._initContiners()
         this._initBackGroundScale();
+        /**
+         * 
+         * @type {Object.<string, nodePosition>}        
+         * */
+
+        this._index = {};
 
         /**
          * @type {Object.<string, Object.<string, true>>}
@@ -174,6 +183,12 @@ export class FlowController {
             callback(message)
         }
 
+
+    }
+    moveToNode(nodeId) {
+        const node = this._index[nodeId];
+        const [year, month, date] = FlowUtil.stringToYearMonthDate(node.published)
+        this.moveToDate(year, month, date)
 
     }
 
@@ -690,11 +705,7 @@ export class FlowController {
     addNode(nodes, edges) {
         let total = 0;
         const weights = [];
-        /**
-         * @typedef {Node & {x?:number,y?:number, size?:number, grids?:Object.<string, true>}} nodePosition
-         * @type {Object.<string, nodePosition>}        
-         * */
-        const index = {};
+
         let maxYear = 0;
         let minYear = Infinity;
         /**
@@ -704,7 +715,7 @@ export class FlowController {
         const pt = /\d+/g
 
         for (const node of nodes) {
-            index[node.id] = node;
+            this._index[node.id] = node;
             total += node.weight;
             weights.push(node.weight)
 
@@ -785,7 +796,7 @@ export class FlowController {
                 this._interactiveGrid[grid] = interactiveData
 
             }
-            index[node.id] = Object.assign(node, { x, y, size, grids })
+            this._index[node.id] = Object.assign(node, { x, y, size, grids })
 
             //@todo 中心を基準に並び順を変更
             //@task ズームした時の大きさを変わらないように(保留。年モード→月モード→日モード(チャットのみ?))
@@ -819,11 +830,11 @@ export class FlowController {
             /**
              * @type {nodePosition}
              */
-            const fromData = index[edge.from]
+            const fromData = this._index[edge.from]
             /**
              * @type {nodePosition}
              */
-            const toData = index[edge.to]
+            const toData = this._index[edge.to]
             if (!fromData || !toData) {
                 continue;
             }
@@ -939,4 +950,16 @@ export class FlowController {
     }
 
 
+}
+
+const numberPt = /\d+/g
+export const FlowUtil = {
+    /**
+     * 
+     * @param {string} dateString 
+     * @returns 
+     */
+    stringToYearMonthDate: function (dateString) {
+        return Array.from(dateString.matchAll(numberPt)).map(Number)
+    }
 }
