@@ -185,10 +185,14 @@ export class FlowController {
 
 
     }
+    /**
+     * @param {string | number} nodeId
+     */
     moveToNode(nodeId) {
         const node = this._index[nodeId];
         const [year, month, date] = FlowUtil.stringToYearMonthDate(node.published)
         this.moveToDate(year, month, date)
+        return node
 
     }
 
