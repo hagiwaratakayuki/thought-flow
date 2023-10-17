@@ -9,7 +9,7 @@ import * as PIXI from "pixi.js";
         nodes:Node[],
         isOverwraped: boolean
    }} GridInfo
-   
+   @typedef {"node.click" | "node.over"} MouseEventName
 
          
  **/
@@ -82,7 +82,6 @@ export class FlowController {
          * @type {Object.<string, GridInfo>}
          */
         this._interactiveGrid = {};
-        this._initParams();
 
 
 
@@ -95,8 +94,10 @@ export class FlowController {
         this._initTansform()
         this.centerV = this.app.screen.height / 2
 
-        const wheelHandler = this.onZoom.bind(this)
-        container.addEventListener('wheel', wheelHandler)
+        // const wheelHandler = this.onZoom.bind(this)
+        //container.addEventListener('wheel', wheelHandler)
+        const onMouseEnter = this.onMouseEnter.bind(this);
+        container.addEventListener('mouseenter', onMouseEnter);
         const onMouseDown = this.onMouseDown.bind(this)
         container.addEventListener('mousedown', onMouseDown)
         const onMouseMove = this.onMouseMove.bind(this)
@@ -124,6 +125,7 @@ export class FlowController {
 
         container.appendChild(this.app.view)
         this._isOnDrag = false;
+        this._isMouseEnter = false;
 
 
 
@@ -153,17 +155,17 @@ export class FlowController {
 
     }
     /**
-     * @param {"node.click"} event
+     * @param {MouseEventName} event
      * @param {Function} callback
      */
-    _on(event, callback) {
+    on(event, callback) {
         const callbacks = this._events || [];
         callbacks.push(callback);
         this._events[event] = callbacks
 
     }
     /**
-     * @param {"node.click"} event
+     * @param {MouseEventName} event
      * @param {any} message
      */
     _emit(event, message) {
@@ -276,6 +278,9 @@ export class FlowController {
 
 
     }
+    onMouseEnter() {
+        this._isMouseEnter = true
+    }
     /**
      * 
      * @param {MouseEvent} event 
@@ -283,34 +288,32 @@ export class FlowController {
     onMouseDown(event) {
         this._isOnDrag = true
         this._mousePosition = { x: event.clientX, y: event.clientY }
-        this._emitNodeClick(event)
+        this._emitNodeMouseInteraction('node.click', event);
 
 
 
     }
-    /**
-     * @param {Function} callback
-     */
-    onNodeClick(callback) {
-        this._on('node.click', callback)
-    }
-    /**
-     * @param {MouseEvent} event
-     */
-    _emitNodeClick(event) {
 
-        const x = (event.clientX - this._offset.x - this._transforms.x) / this._transforms.scaleX
-        const y = (event.clientY - this._offset.y - this._transforms.y) / this._transforms.scaleY;
+    /**
+     * @param {MouseEventName} eventName
+     * @param {MouseEvent} mouseEvent
+     */
+    _emitNodeMouseInteraction(eventName, mouseEvent) {
+
+        const x = (mouseEvent.clientX - this._offset.x - this._transforms.x) / this._transforms.scaleX
+        const yCenter = this.app.screen.height / 2;
+        const y = yCenter + (mouseEvent.clientY - this._offset.y - this._transforms.y - yCenter) / this._transforms.scaleY;
 
         const grid = this._getGridFromAxis(x, y);
 
         if (grid in this._interactiveGrid) {
 
-            this._emit('node.click', this._interactiveGrid[grid])
+            this._emit(eventName, this._interactiveGrid[grid])
         }
     }
     onMouseOut() {
-        this._isOnDrag = false
+        this._isOnDrag = false;
+        this._isMouseEnter = false;
     }
     onMouseUp() {
         this._isOnDrag = false;
@@ -320,7 +323,9 @@ export class FlowController {
      * @param {MouseEvent} event 
      */
     onMouseMove(event) {
-
+        if (this._isMouseEnter && this._isOnDrag === false) {
+            this._emitNodeMouseInteraction('node.over', event)
+        }
         if (this._isOnDrag === false) {
             return
         }
@@ -334,6 +339,24 @@ export class FlowController {
 
 
 
+    }
+    /**
+     * @param {number} year
+     * @param {number} month
+     * @param {number} date
+     */
+    moveToDate(year, month, date) {
+        const moveX = -1 * this._getXFromYearMonthDate(year, month, date)
+        this._transforms.x = moveX;
+
+    }
+    /**
+     * @param {number} year
+     * @param {number} month
+     * @param {number} date
+     */
+    _getXFromYearMonthDate(year, month, date) {
+        return ((year - this._minYear) * 12 * 31 + (month - 1) * 31 + date) * 20;
     }
     destroy() {
         this.app.destroy()
@@ -349,12 +372,14 @@ export class FlowController {
             return
         }
 
-        const yAdjast = (this.app.screen.height / 2) * (1 - this._transforms.scaleY);
-        this._graphContainer.setTransform(0, yAdjast, this._transforms.scaleX, this._transforms.scaleY)
+        const yAdjast = this.app.screen.height / 2 * (1 - this._transforms.scaleY);
+
+        this._graphContainer.setTransform(this._transforms.x, this._transforms.y + yAdjast, this._transforms.scaleX, this._transforms.scaleY)
+
+        this._scaleContainer.position.set(this._transforms.x, this._scaleContainer.position.y)
         this._isTransformed = false;
 
-        this._graphContainer.position.set(this._transforms.x, this._transforms.y)
-        this._scaleContainer.position.set(this._transforms.x, this._scaleContainer.position.y)
+
 
         /**
          * @type {{scale:PIXI.Container; year:number; month:number;}[]}
@@ -724,7 +749,7 @@ export class FlowController {
         for (const [node, yearMonthDate, weight] of nodeDatas) {
 
             //当たり判定と重複処理
-            const x = (((yearMonthDate.year - minYear) * 12 * 31 + (yearMonthDate.month - 1)) * 31 + yearMonthDate.date) * 20;
+            const x = this._getXFromYearMonthDate(yearMonthDate.year, yearMonthDate.month, yearMonthDate.date);
 
             const y = (1 - node.y) * this.app.screen.height / 2;
 
