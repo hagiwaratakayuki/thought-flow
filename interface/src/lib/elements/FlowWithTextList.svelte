@@ -31,6 +31,7 @@
     }
     textList.addOverViews(overViews, isNextExist);
   }
+  function test(event) {}
 </script>
 
 {#if _isLoading == true}
@@ -46,7 +47,7 @@
       </div>
     </Col>
     <Col class="h-100 p-2 border border-primary-subtle rounded-1" sm="10">
-      <Flow flow={_flow} />
+      <Flow flow={_flow} on:NodeOver={test} />
     </Col>
   </Row>
 {:else}

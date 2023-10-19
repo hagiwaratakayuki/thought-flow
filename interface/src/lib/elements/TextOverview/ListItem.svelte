@@ -1,22 +1,37 @@
 <script>
-  export let selectedId;
   import { createEventDispatcher } from "svelte";
 
+  const dispatcher = createEventDispatcher();
+  export function select() {
+    isSelected = true;
+    element.scrollIntoView({ behavior: "smooth" });
+  }
+
+  export function deselect() {
+    isSelected = false;
+  }
+
+  let isSelected = false;
   /**
    * @type  {import("$lib/ml_api/api_types/TextOverView").TextOverView}
    */
   export let overview;
-  const dispatcher = createEventDispatcher();
+  /**
+   * @type {HTMLElement}
+   */
   let element;
-  $: {
-    if (selectedId === overview) {
-      dispatcher("matchSelect", element);
-    }
+
+  function onMouseEnter() {
+    dispatcher("mouseenter", overview.id);
   }
 </script>
 
-<li class="list-group-item border-start-0 border-end-0" bind:this={element}>
-  <a href="/text/{overview.id}" class:selected={selectedId == overview.id}>
+<li
+  class="list-group-item border-start-0 border-end-0"
+  bind:this={element}
+  on:mouseenter={onMouseEnter}
+>
+  <a href="/text/{overview.id}" class:selected={isSelected}>
     {overview.title.slice(0, 15)}...
   </a>
 </li>

@@ -12,6 +12,7 @@ export type FlowEntry = {
     y: number,
     weight: number,
     published: string,
+    title: string
 
 
 }

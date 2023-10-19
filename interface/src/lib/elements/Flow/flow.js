@@ -9,7 +9,7 @@ import * as PIXI from "pixi.js";
         nodes:Node[],
         isOverwraped: boolean
    }} GridInfo
-   @typedef {"node.click" | "node.over"} MouseEventName
+   @typedef {"node.click" | "node.over" | "node.over.out"} MouseEventName
    @typedef {Node & {x?:number,y?:number, size?:number, grids?:Object.<string, true>}} nodePosition
 
          
@@ -128,6 +128,7 @@ export class FlowController {
         container.appendChild(this.app.view)
         this._isOnDrag = false;
         this._isMouseEnter = false;
+        this._isNodeOver = false
 
 
 
@@ -175,12 +176,12 @@ export class FlowController {
     }
     /**
      * @param {MouseEventName} event
-     * @param {any} message
+     * @param {any} messages
      */
-    _emit(event, message) {
+    _emit(event, ...messages) {
         const callbacks = this._events[event] || [];
         for (const callback of callbacks) {
-            callback(message)
+            callback(...messages)
         }
 
 
@@ -327,8 +328,10 @@ export class FlowController {
 
         if (grid in this._interactiveGrid) {
 
-            this._emit(eventName, this._interactiveGrid[grid])
+            this._emit(eventName, this._interactiveGrid[grid], mouseEvent)
+            return true
         }
+        return false
     }
     onMouseOut() {
         this._isOnDrag = false;
@@ -343,7 +346,10 @@ export class FlowController {
      */
     onMouseMove(event) {
         if (this._isMouseEnter && this._isOnDrag === false) {
-            this._emitNodeMouseInteraction('node.over', event)
+            const _isNodeOver = this._emitNodeMouseInteraction('node.over', event)
+            if (_isNodeOver === false && this._isNodeOver === true) {
+                this._emit("node.over.out")
+            }
         }
         if (this._isOnDrag === false) {
             return

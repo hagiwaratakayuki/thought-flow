@@ -8,6 +8,23 @@
   export let selectedId = "";
   export let overViews = undefined;
   export let isNextExist = false;
+
+  export function selectItem(id) {
+    if (selectItem != null) {
+      selectItem.deselect();
+    }
+    selectItem = elements[id];
+    selectItem.select();
+  }
+  /**
+   * @type {Object.<any, ListItem>}
+   */
+  let elements = {};
+  /**
+   * @type {ListItem | null}
+   */
+  let selectedItem = null;
+
   onMount(function () {
     if (typeof overViews !== "undefined") {
       addOverViews(overViews, isNextExist);
@@ -35,16 +52,17 @@
   function _getNext() {
     dispatcher("next");
   }
-  function createCheckSeleceted(id) {
-    return function () {
-      selectedId == id;
-    };
+  /**
+   * @param {CustomEvent} event 
+   */
+  function onMouseEnterItem(event) {
+    selectItem(event.detail);
   }
 </script>
 
 <ListGroup>
   {#each _overviews as overview}
-    <ListItem {overview} {selectedId} on:matchSelect />
+    <ListItem {overview} {selectedId} on:s bind:this={elements[overview.id]} on:mouseenter={}/>
   {/each}
 </ListGroup>
 
