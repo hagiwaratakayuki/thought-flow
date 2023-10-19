@@ -53,7 +53,7 @@
     dispatcher("next");
   }
   /**
-   * @param {CustomEvent} event 
+   * @param {CustomEvent} event
    */
   function onMouseEnterItem(event) {
     selectItem(event.detail);
@@ -62,7 +62,13 @@
 
 <ListGroup>
   {#each _overviews as overview}
-    <ListItem {overview} {selectedId} on:s bind:this={elements[overview.id]} on:mouseenter={}/>
+    <ListItem
+      {overview}
+      {selectedId}
+      on:s
+      bind:this={elements[overview.id]}
+      on:mouseenter={onMouseEnterItem}
+    />
   {/each}
 </ListGroup>
 
