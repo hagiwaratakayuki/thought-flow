@@ -2,9 +2,11 @@
   import { createEventDispatcher } from "svelte";
 
   const dispatcher = createEventDispatcher();
-  export function select() {
+  export function select(isScroll = true) {
     isSelected = true;
-    element.scrollIntoView({ behavior: "smooth" });
+    if (isScroll === true) {
+      element.scrollIntoView({ behavior: "smooth" });
+    }
   }
 
   export function deselect() {

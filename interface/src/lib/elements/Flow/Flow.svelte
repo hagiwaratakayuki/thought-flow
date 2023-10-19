@@ -59,6 +59,10 @@
      *
      * */
     const message = { gridInfo, mouseEvent };
+    tooltipMessage = `${gridInfo.nodes[0].title.slice(0, 10)}`;
+    if (gridInfo.isOverwraped) {
+      tooltipMessage += `and ${gridInfo.nodes.length - 1} articles`;
+    }
 
     dispatcher("NodeOver", message);
   }
@@ -75,11 +79,6 @@
      * */
     const message = { gridInfo, mouseEvent };
     dispatcher("NodeOverOut", message);
-
-    tooltipMessage = `${gridInfo.nodes[0].title.slice(0, 10)}`;
-    if (gridInfo.isOverwraped) {
-      tooltipMessage += `and ${gridInfo.nodes.length - 1} articles`;
-    }
   }
   function onNodeClick() {}
 </script>

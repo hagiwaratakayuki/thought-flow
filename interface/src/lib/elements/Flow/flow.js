@@ -169,7 +169,7 @@ export class FlowController {
      * @param {Function} callback
      */
     on(event, callback) {
-        const callbacks = this._events || [];
+        const callbacks = this._events[event] || [];
         callbacks.push(callback);
         this._events[event] = callbacks
 
@@ -336,6 +336,7 @@ export class FlowController {
     onMouseOut() {
         this._isOnDrag = false;
         this._isMouseEnter = false;
+        this._isNodeOver = false
     }
     onMouseUp() {
         this._isOnDrag = false;
@@ -350,6 +351,7 @@ export class FlowController {
             if (_isNodeOver === false && this._isNodeOver === true) {
                 this._emit("node.over.out")
             }
+            this._isNodeOver = _isNodeOver
         }
         if (this._isOnDrag === false) {
             return

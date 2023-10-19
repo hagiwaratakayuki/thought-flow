@@ -9,12 +9,12 @@
   export let overViews = undefined;
   export let isNextExist = false;
 
-  export function selectItem(id) {
-    if (selectItem != null) {
-      selectItem.deselect();
+  export function selectItem(id, isScroll = true) {
+    if (selectedItem != null) {
+      selectedItem.deselect();
     }
-    selectItem = elements[id];
-    selectItem.select();
+    selectedItem = elements[id];
+    selectedItem.select(isScroll);
   }
   /**
    * @type {Object.<any, ListItem>}
@@ -56,7 +56,7 @@
    * @param {CustomEvent} event
    */
   function onMouseEnterItem(event) {
-    selectItem(event.detail);
+    selectItem(event.detail, false);
   }
 </script>
 
@@ -65,7 +65,6 @@
     <ListItem
       {overview}
       {selectedId}
-      on:s
       bind:this={elements[overview.id]}
       on:mouseenter={onMouseEnterItem}
     />
