@@ -1,10 +1,33 @@
 <script>
   import { onMount, tick } from "svelte";
-  import Card from "../TextOverview/Card.svelte";
-  export let message;
-  export let top = 0;
-  export let left = 0;
-  export let isVisible = false;
+
+  let message;
+  let top = 0;
+  let left = 0;
+
+  let isVisible = false;
+  let style = "";
+
+  export function show(_top, _left, _message) {
+    message = _message;
+    top = _top;
+
+    left = _left;
+    isVisible = true;
+    setTimeout(function () {
+      for (const [direction, func] of Object.entries(arrowDirections)) {
+        if (func() === true) {
+          arrowDirection = direction;
+          break;
+        }
+      }
+      style = `top:${_framePosition.top}px; left:${_framePosition.left}px`;
+    }, 0);
+  }
+  export function hide() {
+    _framePosition = { top: -10000, left: -10000 };
+    isVisible = false;
+  }
 
   let _framePosition = { top: 0, left: 0 };
 
@@ -36,10 +59,11 @@
     left: function () {
       if (
         left - frameElement.getBoundingClientRect().width / 2 <
-        flowElement.clientLeft
+        flowElement.offsetLeft
       ) {
         _framePosition.top =
           top - frameElement.getBoundingClientRect().height / 2;
+
         _framePosition.left = left + maxRadius + padding;
         return true;
       }
@@ -48,7 +72,7 @@
     right: function () {
       if (
         left + frameElement.getBoundingClientRect().width / 2 >
-        flowElement.clientLeft + flowElement.getBoundingClientRect().width
+        flowElement.offsetLeft + flowElement.getBoundingClientRect().width
       ) {
         _framePosition.top =
           top - frameElement.getBoundingClientRect().height / 2;
@@ -60,22 +84,19 @@
       }
       return false;
     },
-    top: function () {
+    up: function () {
       if (
         top -
           (maxRadius + padding) -
           frameElement.getBoundingClientRect().height -
           arrowElement.clientHeight <
-        flowElement.clientTop
+        flowElement.offsetTop
       ) {
         _framePosition.top =
-          top +
-          (maxRadius + padding) +
-          frameElement.getBoundingClientRect().height;
+          top + (maxRadius + padding) + arrowElement.clientHeight;
+
         _framePosition.left =
-          left -
-          (maxRadius + padding) -
-          frameElement.getBoundingClientRect().width / 2;
+          left - frameElement.getBoundingClientRect().width / 2;
         return true;
       }
       return false;
@@ -83,12 +104,12 @@
     down: function () {
       _framePosition.top =
         top -
-        (maxRadius + padding) +
-        frameElement.getBoundingClientRect().height;
-      _framePosition.left =
-        left -
         (maxRadius + padding) -
-        frameElement.getBoundingClientRect().width / 2;
+        frameElement.getBoundingClientRect().height;
+
+      _framePosition.left =
+        left - frameElement.getBoundingClientRect().width / 2;
+
       return true;
     },
   };
@@ -98,20 +119,6 @@
       Array.from(document.getElementsByTagName("body"))[0].appendChild(tip);
     });
   });
-  $: if (isVisible === false) {
-    _framePosition = { top: -10000, left: -10000 };
-  }
-
-  $: if (isVisible === true) {
-    tick(function () {
-      for (const [direction, func] of Object.entries(arrowDirections)) {
-        if (func() === true) {
-          arrowDirection = direction;
-          break;
-        }
-      }
-    });
-  }
 </script>
 
 <div
@@ -119,15 +126,15 @@
   class:visible={isVisible === true}
   class="tooltip-frame"
   bind:this={frameElement}
-  style="top:{position.top}px; left:{position.left}px;"
+  {style}
 >
-  <div class="text-white bg-black p-1" bind:this={messageDom}>
+  <div class="text-white bg-black p-1" bind:this={flowElement}>
     {message}
   </div>
   <div
     class="bg-black arrow"
     bind:this={arrowElement}
-    class:top={arrowDirection === "top"}
+    class:up={arrowDirection === "up"}
     class:down={arrowDirection === "down"}
     class:right={arrowDirection === "right"}
     class:left={arrowDirection === "left"}
@@ -138,6 +145,7 @@
   .visible {
     position: absolute;
     text-align: center;
+    visibility: visible;
   }
   .hiden {
     visibility: hidden;
@@ -150,12 +158,12 @@
   .arrow {
     position: absolute;
     width: 0.8em;
-    height: 0.8;
+    height: 0.8em;
   }
 
   .up {
     clip-path: polygon(50% 0, 100% 100%, 0 100%);
-    top: -0.4em;
+    top: -0.8em;
     left: calc(50% - 0.4em);
   }
   .right {

@@ -3,6 +3,7 @@
   import { FlowController } from "./flow";
   import { browser } from "$app/environment";
   import Tooltip from "./ToolTip.svelte";
+  import ToolTip from "./ToolTip.svelte";
 
   /**
    * @typedef {import("./Flow.event").NodeEventMessage} EventMessage
@@ -49,6 +50,10 @@
     controller.on("node.click", onNodeClick);
   }
   /**
+   * @type {ToolTip}
+   */
+  let toolTip;
+  /**
    * @param {import("./flow").GridInfo} gridInfo
    * @param {MouseEvent} mouseEvent
    */
@@ -59,10 +64,11 @@
      *
      * */
     const message = { gridInfo, mouseEvent };
-    tooltipMessage = `${gridInfo.nodes[0].title.slice(0, 10)}`;
+    tooltipMessage = `${gridInfo.nodes[0].title.slice(0, 10)}…`;
     if (gridInfo.isOverwraped) {
-      tooltipMessage += `and ${gridInfo.nodes.length - 1} articles`;
+      tooltipMessage += ` + ${gridInfo.nodes.length - 1} articles`;
     }
+    toolTip.show(mouseEvent.clientY, mouseEvent.screenX, tooltipMessage);
 
     dispatcher("NodeOver", message);
   }
@@ -72,7 +78,7 @@
    * @param {MouseEvent} mouseEvent
    */
   function onNodeOverOut(gridInfo, mouseEvent) {
-    isToolTipVisible = false;
+    toolTip.hide();
     /**
      * @type {EventMessage}
      *
@@ -86,11 +92,7 @@
 <div class="container root" bind:this={containerRoot}>
   <div class="container" bind:this={container} />
 </div>
-<Tooltip
-  isVisible={isToolTipVisible}
-  position={tooltipPosition}
-  message={tooltipMessage}
-/>
+<Tooltip bind:this={toolTip} flowElement={containerRoot} />
 
 <style>
   .root {
