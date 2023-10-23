@@ -192,7 +192,7 @@ export class FlowController {
     moveToNode(nodeId) {
         const node = this._index[nodeId];
         const [year, month, date] = FlowUtil.stringToYearMonthDate(node.published)
-        this.moveToDate(year, month, date)
+        this.moveToDate(year, month, date, true)
         return node
 
     }
@@ -248,7 +248,7 @@ export class FlowController {
 
     }
     /**
-     * @param {{x?:number, y?:number, scaleX?:number, scaleY?:number}} arg 
+     * @param {{x?:number, y?:number, scaleX?:number, scaleY?:number, moveX?:number}} arg 
      */
     setTransform(arg) {
 
@@ -260,6 +260,9 @@ export class FlowController {
 
         const scaleX = this._transforms.scaleX + arg.scaleX || 0
         const scaleY = this._transforms.scaleY + arg.scaleY || 0
+        if ('moveX' in arg) {
+            this._transforms.x = arg.moveX;
+        }
 
 
 
@@ -269,12 +272,12 @@ export class FlowController {
             this._isTransformed = true;
         }
 
-        if (arg.x && arg.y) {
-
-            this._isTransformed = true;
 
 
-        }
+        this._isTransformed = true;
+
+
+
 
     }
     /**
@@ -346,7 +349,8 @@ export class FlowController {
      * @param {MouseEvent} event 
      */
     onMouseMove(event) {
-        if (this._isMouseEnter && this._isOnDrag === false) {
+
+        if (this._isMouseEnter === true && this._isOnDrag === false) {
             const _isNodeOver = this._emitNodeMouseInteraction('node.over', event)
             if (_isNodeOver === false && this._isNodeOver === true) {
                 this._emit("node.over.out")
@@ -371,10 +375,30 @@ export class FlowController {
      * @param {number} year
      * @param {number} month
      * @param {number} date
+     * @param {boolean} [isCenter=false] 
      */
-    moveToDate(year, month, date) {
-        const moveX = -1 * this._getXFromYearMonthDate(year, month, date)
-        this._transforms.x = moveX;
+    moveToDate(year, month, date, isCenter = false) {
+
+        let moveX = -1 * this._getXFromYearMonthDate(year, month, date)
+
+
+        if (isCenter === true) {
+            moveX += this._domContainer.clientWidth / 2
+
+            if (year === this._maxYear) {
+                const limitMove = - 1 * this._getXFromYearMonthDate(this._maxYear, 1, 1)
+                moveX = Math.max(moveX, limitMove);
+
+
+            }
+
+
+
+        }
+        this.setTransform({ moveX })
+
+
+
 
     }
     /**
@@ -718,7 +742,7 @@ export class FlowController {
         let total = 0;
         const weights = [];
 
-        let maxYear = 0;
+        let maxYear = this._maxYear || 0;
         let minYear = Infinity;
         /**
          * @type {{year:number, month:number, date:number}[]}
@@ -742,9 +766,13 @@ export class FlowController {
             yearMonthDates.push({ year, month, date })
 
         }
-        if (!this._minYear) {
+        if (!this._minYear || this._minYear > minYear) {
             this._minYear = minYear
         }
+        if (!this._maxYear || maxYear > this._maxYear) {
+            this._maxYear = maxYear;
+        }
+
         const yearDiff = maxYear - minYear || 1;
         const avg = total / nodes.length
         const sigma = Math.sqrt(weights.reduce(function (prev, cur) {
@@ -770,13 +798,14 @@ export class FlowController {
 
 
         for (const [node, yearMonthDate, weight] of nodeDatas) {
+            const size = (5 + 15 * weight) / 2;
+
 
             //当たり判定と重複処理
             const x = this._getXFromYearMonthDate(yearMonthDate.year, yearMonthDate.month, yearMonthDate.date);
 
             const y = (1 - node.y) * this.app.screen.height / 2;
 
-            const size = (5 + 15 * weight) / 2;
 
 
 
@@ -944,7 +973,7 @@ export class FlowController {
         const monthDiff = 31;
         const year = Math.floor(baseX / yearDiff) + this._minYear;
         const month = Math.ceil(Math.abs(baseX % yearDiff) / 31);
-        const date = Math.ceil(Math.abs(baseX % yearDiff) % monthDiff);
+        const date = Math.floor(Math.abs(baseX % yearDiff) % monthDiff);
 
 
         return this._getGrid(year, month, date, y);

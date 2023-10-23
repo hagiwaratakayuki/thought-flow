@@ -128,7 +128,7 @@
   bind:this={frameElement}
   {style}
 >
-  <div class="text-white bg-black p-1" bind:this={flowElement}>
+  <div class="text-white bg-black p-2 fs-6" bind:this={flowElement}>
     {message}
   </div>
   <div

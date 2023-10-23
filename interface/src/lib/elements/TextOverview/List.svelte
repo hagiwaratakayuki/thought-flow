@@ -57,6 +57,7 @@
    */
   function onMouseEnterItem(event) {
     selectItem(event.detail, false);
+    dispatcher("mouseover", event.detail);
   }
 </script>
 

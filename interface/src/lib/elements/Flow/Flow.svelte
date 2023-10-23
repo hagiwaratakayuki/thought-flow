@@ -3,8 +3,8 @@
   import { FlowController } from "./flow";
   import { browser } from "$app/environment";
   import Tooltip from "./ToolTip.svelte";
+  import NodeModal from "./NodeModal.svelte";
   import ToolTip from "./ToolTip.svelte";
-
   /**
    * @typedef {import("./Flow.event").NodeEventMessage} EventMessage
    */
@@ -23,8 +23,10 @@
   $: if (browser === true && isMounted === true) {
     createFlowNetwork(flow);
   }
-
-  let controller = null;
+  /**
+   * @type {FlowController}
+   */
+  let controller;
   /**
    * @type {HTMLElement | null}
    */
@@ -37,6 +39,10 @@
   let isToolTipVisible = false;
   let tooltipMessage = "";
   let tooltipPosition = { top: 0, left: 0 };
+
+  export function moveToNode(nodeId) {
+    controller.moveToNode(nodeId);
+  }
 
   /**
    *
@@ -58,7 +64,6 @@
    * @param {MouseEvent} mouseEvent
    */
   function onNodeOver(gridInfo, mouseEvent) {
-    isToolTipVisible = true;
     /**
      * @type {EventMessage}
      *
@@ -86,11 +91,28 @@
     const message = { gridInfo, mouseEvent };
     dispatcher("NodeOverOut", message);
   }
-  function onNodeClick() {}
+  /**
+   * @type {NodeModal}
+   */
+  let nodeModal;
+  /**
+   * @param {import("./flow").GridInfo} gridInfo
+   * @param {MouseEvent} mouseEvent
+   */
+  function onNodeClick(gridInfo, mouseEvent) {
+    nodeModal.open(gridInfo);
+    toolTip.hide();
+  }
+  // gurd function for prpagation to body
+  function voidFunc() {}
 </script>
 
+<!-- svelte-ignore a11y-click-events-have-key-events -->
+<!-- svelte-ignore a11y-no-static-element-interactions -->
 <div class="container root" bind:this={containerRoot}>
   <div class="container" bind:this={container} />
+
+  <NodeModal bind:this={nodeModal} />
 </div>
 <Tooltip bind:this={toolTip} flowElement={containerRoot} />
 
