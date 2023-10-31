@@ -1,17 +1,17 @@
 <script>
-  import TrendLine from "./TrendLine.svelte";
+  import TrendLineTab from "./TrendLineTab.svelte";
   import { onMount } from "svelte";
   export let Hst;
   /**
-   * @type {TrendLine}
+   * @type {TrendLineTab}
    */
-  let trendLine;
+  let trendLineTab;
   onMount(function () {
-    if (!trendLine) {
+    if (!trendLineTab) {
       return;
     }
-    console.log(trendLine);
-    trendLine.setData(
+
+    trendLineTab.setData(
       {
         test1: [
           {
@@ -40,6 +40,6 @@
 
 <Hst.Story>
   <div style="width: 100%; height:300px;">
-    <TrendLine bind:this={trendLine} />
+    <TrendLineTab bind:this={trendLineTab} />
   </div>
 </Hst.Story>

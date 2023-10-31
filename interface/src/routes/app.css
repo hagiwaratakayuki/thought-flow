@@ -26,6 +26,18 @@
     overscroll-behavior-y: none;
 }
 
+.horizontal-scroll {
+    height: 100%;
+    scrollbar-width: none;
+    overflow-x: scroll;
+}
+
+.horizontal-scroll:hover {
+    scrollbar-width: thin;
+    scroll-behavior: smooth;
+    overscroll-behavior-y: none;
+}
+
 .sticky {
     height: 0px;
     position: sticky;

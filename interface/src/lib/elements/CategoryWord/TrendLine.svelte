@@ -1,5 +1,4 @@
 <script>
-  import { Line } from "svelte-chartjs";
   import {
     Chart as ChartJS,
     Title,
@@ -9,6 +8,7 @@
     LinearScale,
     PointElement,
     CategoryScale,
+    LineController,
   } from "chart.js";
 
   ChartJS.register(
@@ -18,12 +18,15 @@
     LineElement,
     LinearScale,
     PointElement,
-    CategoryScale
+    CategoryScale,
+    LineController
   );
-  import { onMount } from "svelte";
-  /**
-   * @typedef {Object.<string, {backgroundColor?:string, borderColor?:string}>} ColorSetting
-   */
+  import { TabPane } from "sveltestrap";
+  import { onDestroy, beforeUpdate } from "svelte";
+  export let monthStep = 20;
+  export let monthCount = 12;
+
+  let canvas;
 
   let frameHeight;
   let frameWidth;
@@ -34,7 +37,7 @@
 
   /**
    *
-   * @param {Object.<string, Array<{datetime:string, score:float}>>}datasMap
+   * @param {DatasMap} datasMap
    * @param {ColorSetting} colors
    */
   export function setData(datasMap, colors = {}) {
@@ -65,6 +68,7 @@
 
     const datesArray = Array.from(Object.keys(dates)).sort();
     const datasetList = [];
+
     for (const keyword in scoresMap) {
       if (Object.hasOwnProperty.call(scoresMap, keyword)) {
         /**
@@ -79,12 +83,12 @@
         }
         dataSet.data = data;
         if (keyword in colors) {
-          const color = colors;
+          const color = colors[keyword];
           if (color.backgroundColor) {
-            dataSet.backgroundColor = colors.backgroundColor;
+            dataSet.backgroundColor = color.backgroundColor;
           }
           if (color.borderColor) {
-            dataSet.borderColor = colors.borderColor;
+            dataSet.borderColor = color.borderColor;
           }
         }
         dataSet.label = keyword;
@@ -92,19 +96,39 @@
         datasetList.push(dataSet);
       }
     }
-
-    chart.data = {
-      labels: datesArray,
-      dataset: datasetList,
-    };
-    chart.update();
+    if (!chart) {
+      chart = new ChartJS(canvas, {
+        type: "line",
+        data: {
+          labels: datesArray,
+          datasets: datasetList,
+        },
+        options: {
+          plugins: {
+            legend: {
+              display: false,
+            },
+          },
+        },
+      });
+    } else {
+      chart.data = {
+        labels: datesArray,
+        datasets: datasetList,
+      };
+      chart.update();
+    }
   }
+  beforeUpdate(function () {
+    chart.update();
+  });
+  onDestroy(function () {
+    if (chart) {
+      chart.destroy();
+    }
+  });
 </script>
 
-<div
-  class="frame"
-  bind:clientHeight={frameHeight}
-  bind:clientWidth={frameWidth}
->
-  <Line bind:chart label={["a", "b", "c"]} />
+<div class=".horizontal-scroll w-100">
+  <canvas bind:this={canvas} width={monthStep * monthCount} />
 </div>
