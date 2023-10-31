@@ -32,6 +32,10 @@
     overflow-x: scroll;
 }
 
+.arrow {
+    cursor: default;
+}
+
 .horizontal-scroll:hover {
     scrollbar-width: thin;
     scroll-behavior: smooth;

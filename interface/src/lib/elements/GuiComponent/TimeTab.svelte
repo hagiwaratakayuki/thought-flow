@@ -46,22 +46,34 @@
 
 <Nav underline>
   <NavItem>
-    <NavLink href="#flow" active={tab === "flow"} on:click={clickNavFlow}
-      >Link</NavLink
+    <NavLink
+      href="#flow"
+      active={tab === "flow"}
+      on:click={clickNavFlow}
+      class={tab === "flow" ? "arrow" : ""}
     >
+      Flow
+    </NavLink>
   </NavItem>
   <NavItem>
     <NavLink
       href="#categoryword"
       active={tab === "categoryword"}
-      on:click={clickCategoryword}>Link</NavLink
+      on:click={clickCategoryword}
+      class={tab === "categoryword" ? "arrow" : ""}
     >
+      Catgoryword
+    </NavLink>
   </NavItem>
 </Nav>
-<div class="container">
+<div class="container mb-3">
   <div class="row justify-content-center">
     <div class="col-auto">
-      <button class="bg-white" on:click={clickPrev}>
+      <button
+        class="bg-white guid"
+        class:disabled={hasPrev === false}
+        on:click={clickPrev}
+      >
         <span
           class="d-inline-block guid left"
           class:bg-primary={hasPrev}
@@ -73,7 +85,11 @@
       <slot name="controll" />
     </div>
     <div class="col-auto">
-      <button class="bg-white guid" on:click={clickNext}>
+      <button
+        class="bg-white guid"
+        class:disabled={hasNext === false}
+        on:click={clickNext}
+      >
         <span
           class="d-inline-block guid right"
           class:bg-primary={hasNext}
@@ -95,6 +111,9 @@
     width: 1em;
     height: 1em;
     border: none;
+  }
+  .disabled {
+    cursor: not-allowed;
   }
 
   .right {

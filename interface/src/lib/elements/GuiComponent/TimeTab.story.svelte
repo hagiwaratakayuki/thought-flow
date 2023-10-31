@@ -3,4 +3,10 @@
   export let Hst;
 </script>
 
-<Hst.Story />
+<Hst.Story>
+  <TimeTab>
+    <div slot="controll">controll</div>
+    <div slot="flow">flow</div>
+    <div slot="categryword">categoryword</div>
+  </TimeTab>
+</Hst.Story>
